@@ -90,8 +90,8 @@ kbd { font: .85em ui-monospace, Menlo, monospace; border: 1px solid var(--line);
     </section>
   </div>
 </main>
-<script src="keymap.js"></script>
-<script src="panel.js"></script>
+<script src="keymap.js?v=__BUILD__"></script>
+<script src="panel.js?v=__BUILD__"></script>
 <script>
 "use strict";
 const KM = globalThis.FM80S_KEYMAP;
@@ -129,7 +129,7 @@ function drawScreen(fb) {
 
 // ---------------------------------------------------------------- the module
 const stubs = () => { const s = new Proxy({}, { get: () => () => 0 }); return { wasi_snapshot_preview1: s, env: s }; };
-const wasmBytes = fetch("fm80s.wasm").then((r) => {
+const wasmBytes = fetch("fm80s.wasm?v=__BUILD__").then((r) => {
   if (!r.ok) throw new Error(`fm80s.wasm : ${r.status}`);
   return r.arrayBuffer();
 });
@@ -258,7 +258,7 @@ async function start() {
     let ac;
     try { ac = new AudioContext({ sampleRate: 44100, latencyHint: "interactive" }); }
     catch { ac = new AudioContext({ latencyHint: "interactive" }); }   // the worklet resamples
-    await ac.audioWorklet.addModule("worklet.js");
+    await ac.audioWorklet.addModule("worklet.js?v=__BUILD__");
     const n = new AudioWorkletNode(ac, "fm80s", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
     n.connect(ac.destination);
     const ready = new Promise((res, rej) => {

@@ -53,7 +53,8 @@ HOST_SRC = host/fm80s_host.c host/scenario.c host/wav.c host/png.c
 HOST_BIN = build/host/fm80s
 SCENARIOS = $(wildcard tests/scenarios/*.trs)
 WEB_SRC = web/emu/fm80s_web.c host/fm80s_host.c
-WEB_PAGE = build/emu/index.html build/emu/worklet.js build/emu/keymap.js build/emu/panel.js
+WEB_STATIC = build/emu/worklet.js build/emu/keymap.js build/emu/panel.js
+WEB_PAGE = build/emu/index.html $(WEB_STATIC)
 WASM = build/emu/fm80s.wasm
 NODE ?= node
 
@@ -100,6 +101,12 @@ $(WASM): $(WEB_SRC) $(APP_SRC) $(wildcard host/*.h) $(FIRMWARE_H) $(GEN)
 	$(EMCC) $(CFLAGS_COMMON) -DAPP_HOST -DAPP_WEB -Ihost --no-entry -sSTANDALONE_WASM -sFILESYSTEM=0 \
 	    -sSTACK_SIZE=1048576 -sINITIAL_MEMORY=33554432 -o $@ $(WEB_SRC) $(APP_SRC)
 	@echo "web: $@ ($$(wc -c < $@ | tr -d ' ') octets)"
+
+# the page asks for its files as NAME?v=BUILD, BUILD a checksum of them: a browser never mixes a
+# cached file of an older build (or of Trawler, at the same address) with a new page
+build/emu/index.html: web/emu/index.html $(WASM) $(WEB_STATIC)
+	@mkdir -p build/emu
+	sed "s/__BUILD__/$$(cat $(WASM) $(WEB_STATIC) | cksum | cut -d' ' -f1)/g" $< > $@
 
 build/emu/%: web/emu/%
 	@mkdir -p build/emu
