@@ -30,6 +30,7 @@ Ce que ce n'est pas : un OP-XY (station de séquençage, très complète mais pe
 | **Effets** | Par piste : filtre, saturation. En envoi : chorus, delay synchronisé, réverbe (dont une réverbe « gated », signature de la caisse claire synthwave). Sur le master : saturation façon bande, limiteur. |
 | **Punch-in** | Une partie dédiée de l'écran FX : une fois le mode punch-in enclenché, **les 11 touches noires** déclenchent chacune un effet momentané sur tout le mix, tant qu'on la tient (répétition, arrêt de bande, balayage passe-bas ou passe-haut, bitcrush, gate rythmique, envoi delay ou réverbe à fond…), et les potards règlent l'effet en cours. Les touches blanches continuent de jouer. |
 | **Arpégiateur** | **Obligatoire** (bouton ARP) : les modes classiques (montant, descendant, aller-retour, aléatoire, ordre de jeu), un **mode repeat** qui répète la note tenue (surtout pour la basse), et le réglage du **gate** et de la **vitesse** (synchronisée au tempo). |
+| **Gammes** | **Obligatoire.** Une note de base (C à B) et une gamme, réglées pour le projet : chromatique, majeure, mineure naturelle, **mineure harmonique**, mineure mélodique, les modes (dorien, phrygien, lydien, mixolydien, locrien), pentatoniques majeure et mineure, blues, et d'autres au besoin. L'arpégiateur et le séquenceur la suivent. **Mode facile :** on ne joue que des notes de la gamme. Proposition : les 16 touches blanches jouent les degrés successifs de la gamme (plus de deux octaves, aucune fausse note possible), les touches noires restent libres (punch-in…). Autre façon, à comparer à l'essai : garder le clavier du piano et ramener une touche hors gamme sur la note de la gamme la plus proche. |
 | **Jeu** | Polyphonie selon le moteur (de 4 à 8 voix, à mesurer sur l'appareil), glide, mono / poly. |
 | **Presets** | Une banque de sons par moteur, orientée synthwave, et sauvegarde des sons et des projets (boucles comprises). |
 | **FM-1 virtuel** | La même chose dans le navigateur, au clavier de l'ordinateur et au panneau. |
@@ -89,8 +90,10 @@ Entiers seulement, pas de division 64 bits, pas de libc, mémoire statique ; RAM
 8. **En mode punch-in, les touches noires ne jouent plus de dièses :** accepté.
 9. **Séquenceur :** batterie seule d'abord, extensible ensuite ; 16 pas par défaut, jusqu'à 128, pour tous les instruments.
 10. **Dépôt :** `y6zkcqnf5r-hue/fm1-fm80s`.
+11. **Gammes obligatoires :** note de base + gamme (majeures, mineures dont l'harmonique, modes…), et un **mode facile** qui ne joue que des notes de la gamme.
 
 ## 10. Questions encore ouvertes
 
 1. Scènes et song : la proposition du §3 (16 scènes, changement à la fin de la boucle, liste de 64 entrées) est à essayer.
-2. La mémoire : 8 pistes × 16 scènes × jusqu'à 128 pas de notes et de gestes, à chiffrer dans la spec contre les budgets (pool de 336 Kio, effets compris).
+2. Le mode facile : les touches blanches jouent les degrés de la gamme (proposé), ou le clavier du piano ramené sur la gamme ? À essayer sur l'appareil. Et la gamme : par projet, ou par scène (changement de tonalité au refrain) ?
+3. La mémoire : 8 pistes × 16 scènes × jusqu'à 128 pas de notes et de gestes, à chiffrer dans la spec contre les budgets (pool de 336 Kio, effets compris).
