@@ -10,7 +10,7 @@ Si vous distribuez FM80S, ou un firmware qui en dérive, vous devez fournir à v
 | --- | --- | --- |
 | `tools/gen_fm80s_splash.py`, l'image de démarrage (`build/gen/fm80s_splash.h`, et son aperçu `assets/logo/fm80s-splash.png`) | FM80S, Copyright (C) 2026 Floydus ; dessinée à partir de formes simples, sans police ni image tierce ; même format que `tools/gen_logo.py` de SLOOP | GPL-3.0-only |
 | `firmware/src/fm80s_splash.c` | FM80S, d'après `firmware/src/splash.c` de SLOOP (isod89) | GPL-3.0-only |
-| Les lignes marquées `FM80S` dans les fichiers de SLOOP (`ui.c`, `ui_menu.c`, `recovery.c`, `ui_vis.c`, `felucca.c`, `main.c`, `tools/build.py`, `web/index_pkg.html`, `web/make_site.py`), et les budgets CPU recalés (`tests/cpu_baseline.txt`, `tests/target_budget.txt`) | FM80S | GPL-3.0-only, comme les fichiers qui les portent |
+| Les lignes marquées `FM80S` dans les fichiers de SLOOP (`ui.c`, `ui_menu.c`, `recovery.c`, `ui_vis.c`, `felucca.c`, `main.c` (démarrage, écran de plantage), `tools/build.py`, `web/index_pkg.html`, `web/make_site.py`), et les budgets CPU recalés (`tests/cpu_baseline.txt`, `tests/target_budget.txt`) | FM80S | GPL-3.0-only, comme les fichiers qui les portent |
 | Les documents `docs/03_PRD.md` à `docs/10_FAISABILITE_8_PISTES.md`, `CLAUDE.md`, ce `README.md` | FM80S | GPL-3.0-only |
 | Tout le reste de l'arbre | SLOOP et Felucca, inchangés : voir plus bas | Comme indiqué plus bas |
 

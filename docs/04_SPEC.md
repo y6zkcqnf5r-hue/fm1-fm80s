@@ -8,7 +8,7 @@
 
 | Élément | Dans SLOOP | Dans FM80S |
 | --- | --- | --- |
-| Nom à l'écran | SLOOP | **FM80S** (démarrage, ABOUT, secours `FM80S USB RESCUE`, fichier `fm80s-VER.fwsc`) ; version `FM80S 0.1`. Le visualiseur « SLOOP » s'appelle « SAIL » |
+| Nom à l'écran | SLOOP | **FM80S** (démarrage, ABOUT, secours `FM80S USB RESCUE`, plantage `FM80S CRASH`, fichier `fm80s-VER.fwsc`) ; version `FM80S 0.1`. Le visualiseur « SLOOP » s'appelle « SAIL » |
 | Crédit | « based on felucca » sous le logo | « by Floydus » et « inspired by SLOOP & Felucca » sous l'image ; dans ABOUT, BY FLOYDUS, INSPIRED BY SLOOP & FELUCCA, ISOD89 / LEO KUROSHITA, HÜGELTON INSTRUMENTS, la GPL et notre source (ADR-044, ADR-047) |
 | Image de démarrage | `splash.c` + `tools/gen_logo.py` : 240×188, 16 couleurs, RLE, ~900 ms | **Faite (F0-01) :** `tools/gen_fm80s_splash.py` + `fm80s_splash.c`, même format (RLE 6649 o) : ciel de nuit, soleil couchant à bandes, grille en perspective, « FM80S » en cyan chromé, « v0.1 » en haut à droite. Validée par Anthony sur capture. Aperçu : `assets/logo/fm80s-splash.png` |
 | Thème | 5 palettes d'écran au choix (menu COLOR) | *Provisoire :* une palette « FM80S » en plus, proche du thème de P0-01 (nuit violette, magenta, cyan) ; les palettes de SLOOP restent au choix |
