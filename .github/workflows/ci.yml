@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# FM80S's CI: every push and pull request runs `make lint test web` (lint, unit tests, scenarios and
+# their golden hashes, wasm/native parity), with the pinned Emscripten image (ADR-011). A push on main
+# then publishes build/emu, the virtual FM-1, on GitHub Pages (Settings -> Pages -> Source must be
+# "GitHub Actions"). Actions pinned by commit, as in ChoralRoot's .github/workflows/pages.yml.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  EMSDK_VERSION: "6.0.11"           # ADR-011, the Makefile's EMSDK_VERSION
+  NODE_VERSION: "22"
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Emscripten (emscripten/emsdk image)
+        run: docker pull -q "emscripten/emsdk:$EMSDK_VERSION"
+
+      - name: make lint test web
+        run: |
+          set -euo pipefail
+          cc --version | head -1
+          clang --version | head -1      # make size (ADR-020)
+          node --version
+          make lint test web DOCKER=1
+          ls -l build/emu
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          path: build/emu
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

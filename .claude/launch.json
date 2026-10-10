@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fm80s-web",
+      "runtimeExecutable": "make",
+      "runtimeArgs": ["serve"],
+      "port": 8080
+    },
+    {
+      "name": "fm80s-web-8081",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8081", "--bind", "127.0.0.1", "--directory", "build/emu"],
+      "port": 8081
+    }
+  ]
+}

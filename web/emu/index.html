@@ -1,0 +1,268 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<!-- FM80S, the virtual FM-1: the panel (panel.js) with the screen in it, the Start button, the
+     computer keyboard (keymap.js). The device runs in worklet.js; before Start a silent copy boots here
+     to show its screen. Screen and input handling after FoMni's and X0X's web/emu/index.html
+     (Charles Vestal). -->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FM80S</title>
+<style>
+:root { --bg: #15171a; --fg: #e6e7e9; --dim: #8b9097; --line: #2c3036; --accent: #f2b54b; --card: #1c1f23; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { padding: 8px 16px 40px; }
+/* the panel fills the width, but always fits the window's height (1000 x 640) */
+.device { position: relative; margin: 0 auto; aspect-ratio: 1000 / 640;
+          width: min(100%, calc((100vh - 16px) * 1.5625), 1600px);
+          width: min(100%, calc((100svh - 16px) * 1.5625), 1600px);
+          user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+.device svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.device svg text { font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-weight: 600; letter-spacing: .04em; }
+.device svg text.engraved { font-weight: 500; letter-spacing: .08em; }
+.device svg text.hint { font-family: ui-monospace, Menlo, monospace; font-weight: 500; letter-spacing: 0; }
+.device canvas.lcd { position: absolute; image-rendering: pixelated; image-rendering: crisp-edges; background: #000; }
+.device canvas.lcd.small { image-rendering: auto; }
+.hit { position: absolute; touch-action: none; cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 10px; }
+.hit.enc, .hit.master { cursor: ns-resize; border-radius: 50%; }
+.hit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.face { transition: fill .05s; }
+.button.lit .face { fill: #f0a043; }
+.button.lit text.lbl { fill: #1b1205; }
+.button.red .face { fill: #e0483e; }
+.button.red text.lbl { fill: #fff; }
+.key.white.lit .face { fill: #f3b25c; }
+.key.black.lit .face { fill: #e0902c; }
+.key.white.dim .face { fill: #f6dcb6; }
+.key.black.dim .face { fill: #a07444; }
+.held .face { stroke: #f0a043; stroke-width: 3; }
+.latched .face { stroke: #6fc3ff; stroke-width: 3.5; }
+.start { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10, 11, 13, .5); border-radius: 4.4% / 6.9%; z-index: 2; }
+.start[hidden] { display: none; }
+.start button { font: 600 1.15rem system-ui, sans-serif; padding: .7em 1.8em; border: 0; border-radius: 999px; background: var(--accent); color: #1b1205; cursor: pointer; }
+.start button:disabled { opacity: .6; cursor: progress; }
+.turn { display: none; text-align: center; color: var(--dim); margin: 0 0 8px; }
+@media (orientation: portrait) and (max-width: 700px) { .turn { display: block; } }
+.below { max-width: 1000px; margin: 0 auto; }
+h1 { font-size: 1.05rem; letter-spacing: .08em; margin: 14px 0 0; }
+#status, #stats { color: var(--dim); font-size: .9rem; margin: 4px 0 0; }
+#stats { font-variant-numeric: tabular-nums; min-height: 1.3em; }
+.legend { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; color: var(--dim); font-size: .9rem; }
+.legend .opts { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-bottom: 8px; color: var(--fg); }
+.legend select { font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.legend ul { padding-left: 1.2em; margin: 6px 0; }
+.legend li { margin: 2px 0; }
+kbd { font: .85em ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--fg); background: var(--card); }
+</style>
+</head>
+<body>
+<main>
+  <p class="turn">Tournez l'appareil en paysage pour un panneau plus grand.</p>
+  <div class="device" id="device">
+    <div class="start" id="start"><button id="go" type="button">Démarrer</button></div>
+  </div>
+  <div class="below">
+    <h1>FM80S</h1>
+    <p id="status">Éteint : le son démarre au clic sur Démarrer.</p>
+    <p id="stats"></p>
+    <section class="legend">
+      <div class="opts">
+        <label>Clavier de l'ordinateur <select id="layout"></select></label>
+        <label><input type="checkbox" id="hints" checked> touches sur le panneau</label>
+      </div>
+      <ul id="legend"></ul>
+      <ul>
+        <li>À la souris ou au doigt : chaque contrôle se clique ; les potards se tournent en glissant vers le haut ou le bas, ou à la molette.</li>
+        <li>Verrouiller un bouton enfoncé : clic droit (ou Ctrl-clic), ou appui long au doigt ; un nouvel appui le libère.
+            <kbd>⇧</kbd> + clic = SEL + le contrôle.</li>
+      </ul>
+    </section>
+  </div>
+</main>
+<script src="keymap.js"></script>
+<script src="panel.js"></script>
+<script>
+"use strict";
+const KM = globalThis.FM80S_KEYMAP;
+const status = document.getElementById("status"), stats = document.getElementById("stats");
+const device = document.getElementById("device");
+
+// ---------------------------------------------------------------- the panel
+let node = null;
+const state = { rate: 0, last: null, nz: 0, frames: 0, msgs: 0, sent: [] };
+window.fm80s = state;                 // for inspection from the console
+function send(m) {
+  state.sent.push(m);
+  if (state.sent.length > 64) state.sent.shift();
+  if (node) node.port.postMessage(m);
+}
+const panel = FM80SPanel.create(device, { send, master: 2048 });
+device.appendChild(document.getElementById("start"));     // over the targets
+state.panel = panel;
+
+// ---------------------------------------------------------------- the screen
+// fb[i] is RGB565 with its bytes swapped (as the panel takes it): one lookup per pixel to RGBA
+const LUT = new Uint32Array(65536);
+for (let v = 0; v < 65536; v++) {
+  const p = ((v >> 8) | (v << 8)) & 0xFFFF;
+  const r = ((p >> 11) * 527 + 23) >> 6, g = (((p >> 5) & 63) * 259 + 33) >> 6, b = ((p & 31) * 527 + 23) >> 6;
+  LUT[v] = (0xFF000000 | (b << 16) | (g << 8) | r) >>> 0;   // ImageData bytes R G B A, little-endian
+}
+const ctx = panel.canvas.getContext("2d");
+const img = ctx.createImageData(240, 240), px = new Uint32Array(img.data.buffer);
+function drawScreen(fb) {
+  for (let i = 0; i < 240 * 240; i++) px[i] = LUT[fb[i]];
+  ctx.putImageData(img, 0, 0);
+}
+
+// ---------------------------------------------------------------- the module
+const stubs = () => { const s = new Proxy({}, { get: () => () => 0 }); return { wasi_snapshot_preview1: s, env: s }; };
+const wasmBytes = fetch("fm80s.wasm").then((r) => {
+  if (!r.ok) throw new Error(`fm80s.wasm : ${r.status}`);
+  return r.arrayBuffer();
+});
+
+// before Start: a silent copy boots and draws its first screen (nothing plays before a click)
+(async () => {
+  try {
+    const { instance } = await WebAssembly.instantiate(await wasmBytes, stubs());
+    const ex = instance.exports;
+    if (ex._initialize) ex._initialize();
+    ex.web_boot();
+    ex.web_run_ms(50);
+    drawScreen(new Uint16Array(ex.memory.buffer, ex.web_fb(), 240 * 240));
+  } catch (err) {
+    status.textContent = "Impossible de charger le module : " + (err && err.message || err);
+  }
+})();
+
+// ---------------------------------------------------------------- the computer keyboard
+addEventListener("keydown", (e) => {
+  if (e.target.closest && e.target.closest("select, input, textarea")) return;
+  const code = e.code;
+  if (e.altKey && !e.ctrlKey && !e.metaKey && KM.altTurns[code]) {          // Option / Alt + 1..8: KNOB1-4
+    e.preventDefault();
+    panel.turn(...KM.altTurns[code]);
+    return;
+  }
+  if (e.ctrlKey && !e.altKey && !e.metaKey && KM.ctrlButtons[code] !== undefined) {   // Ctrl+S: SAVE
+    e.preventDefault();
+    if (!e.repeat) panel.holdButton("k" + code, KM.ctrlButtons[code]);
+    return;
+  }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (KM.turns[code]) { e.preventDefault(); panel.turn(...KM.turns[code]); return; }  // repeats
+  const key = KM.keys[code], btn = KM.buttons[code];
+  if (key === undefined && btn === undefined) return;
+  e.preventDefault();
+  if (e.repeat) return;
+  if (key !== undefined) panel.holdKey("k" + code, key);
+  else panel.holdButton("k" + code, btn);
+});
+addEventListener("keyup", (e) => panel.release("k" + e.code));
+addEventListener("blur", () => panel.releaseKeyboard());
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) panel.releaseKeyboard();
+  send({ type: "visible", value: !document.hidden });
+});
+
+// ---------------------------------------------------------------- the legend
+const layoutSel = document.getElementById("layout"), hints = document.getElementById("hints");
+for (const [id, l] of Object.entries(KM.layouts)) layoutSel.add(new Option(l.name, id));
+const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+function remember(k, v) { try { localStorage.setItem(k, v); } catch { /* this session only */ } }
+function recall(k) { try { return localStorage.getItem(k); } catch { return null; } }
+
+function legend() {
+  const layout = layoutSel.value, L = KM.layouts[layout];
+  const lab = (code) => KM.label(layout, code);
+  const k = (code) => `<kbd>${lab(code).replace(/&/g, "&amp;").replace(/</g, "&lt;")}</kbd>`;
+  const keysOf = (list) => list.map((n) => k(KM.codeOfKey(n))).join(" ");
+  const btn = (b) => k(KM.codeOfButton(b));
+  const alt = (d) => `<kbd>${L.alt}${lab("Digit" + d)}</kbd>`;
+  const B = KM.B;
+  document.getElementById("legend").innerHTML = [
+    `Les touches suivent celles du FM-1 dans l'ordre : ${keysOf([0, 2, 4, 6, 7, 9, 11])} et ${keysOf([1, 3, 5, 8, 10])} : F3 à E4 ; ` +
+      `${keysOf([12, 14, 16, 18, 19, 21, 23, 24, 26])} et ${keysOf([13, 15, 17, 20, 22, 25])} : F4 à G5.`,
+    `${k("ArrowUp")} ${k("ArrowDown")} SELECT, ${k("ArrowLeft")} ${k("ArrowRight")} ALGORITHM, ${k("BracketLeft")} ${k("BracketRight")} PRESETS −/+ ; ` +
+      `${alt(1)} ${alt(2)} … ${alt(7)} ${alt(8)} KNOB1 à KNOB4 −/+.`,
+    `${btn(B.SEL)} SEL, ${btn(B.EDIT)} EDIT, ${k("Space")} PLAY, ${btn(B.REC)} REC, ${btn(B.OCTDN)} ${btn(B.OCTUP)} OCT− / OCT+, <kbd>Ctrl S</kbd> SAVE ; ` +
+      `<kbd>F1</kbd>…<kbd>F7</kbd> HOME, ARP, SEQ, ENV, LFO, GLO, FX${isMac ? " (avec <kbd>fn</kbd> sur Mac)" : ""}.`,
+  ].map((s) => `<li>${s}</li>`).join("");
+  panel.setLegend(layout, hints.checked);
+}
+
+async function defaultLayout() {
+  const saved = recall("fm80s-layout");
+  if (saved && KM.layouts[saved]) return saved;
+  try {
+    if (navigator.keyboard && navigator.keyboard.getLayoutMap) {               // Chrome, Edge
+      const q = (await navigator.keyboard.getLayoutMap()).get("KeyQ");
+      if (q === "a") return isMac ? "azerty-mac" : "azerty-pc";
+      if (q) return "qwerty";
+    }
+  } catch { /* not allowed here */ }
+  if (/^fr(-FR|-BE|-LU|-MC)?$/i.test(navigator.language || "")) return isMac ? "azerty-mac" : "azerty-pc";
+  return "qwerty";
+}
+layoutSel.addEventListener("change", () => { remember("fm80s-layout", layoutSel.value); legend(); });
+hints.addEventListener("change", () => { remember("fm80s-hints", hints.checked ? "1" : "0"); legend(); });
+hints.checked = recall("fm80s-hints") !== "0";
+layoutSel.value = "qwerty";
+legend();
+defaultLayout().then((l) => { layoutSel.value = l; legend(); });
+
+// ---------------------------------------------------------------- frames from the worklet
+function onFrame(m) {
+  state.last = m;
+  state.msgs++;
+  state.nz += m.nz;
+  state.frames = m.frames;
+  if (m.fb) drawScreen(m.fb);
+  panel.leds(m);
+  if (m.load !== undefined) state.load = m.load;
+  stats.textContent = `${state.rate} Hz · appareil ${(m.now / 1000).toFixed(1)} s · ${m.frames} frames · ` +
+    `${state.nz} échantillons non nuls · pic ${m.peak}` + (state.load !== undefined ? ` · ${state.load} % du temps réel` : "");
+}
+
+// ---------------------------------------------------------------- Start
+async function start() {
+  const go = document.getElementById("go");
+  go.disabled = true;
+  go.textContent = "Démarrage…";
+  try {
+    let ac;
+    try { ac = new AudioContext({ sampleRate: 44100, latencyHint: "interactive" }); }
+    catch { ac = new AudioContext({ latencyHint: "interactive" }); }   // the worklet resamples
+    await ac.audioWorklet.addModule("worklet.js");
+    const n = new AudioWorkletNode(ac, "fm80s", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
+    n.connect(ac.destination);
+    const ready = new Promise((res, rej) => {
+      n.port.onmessage = (e) => {
+        const m = e.data;
+        if (m.type === "frame") onFrame(m);
+        else if (m.type === "ready") { state.rate = m.rate; res(); }
+        else if (m.type === "error") rej(new Error(m.message));
+      };
+    });
+    const wasm = (await wasmBytes).slice(0);
+    n.port.postMessage({ type: "load", wasm, store: {}, master: panel.master }, [wasm]);
+    await ready;
+    await ac.resume();
+    node = n;
+    document.getElementById("start").hidden = true;
+    status.textContent = ac.sampleRate === 44100 ? "Allumé (44,1 kHz)."
+      : `Allumé (le navigateur joue à ${ac.sampleRate} Hz : le worklet rééchantillonne).`;
+    panel.resync();
+  } catch (err) {
+    go.disabled = false;
+    go.textContent = "Démarrer";
+    status.textContent = "Démarrage impossible : " + (err && err.message || err);
+  }
+}
+document.getElementById("go").addEventListener("click", start);
+</script>
+</body>
+</html>
