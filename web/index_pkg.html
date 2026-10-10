@@ -5,7 +5,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SLOOP installer</title>
+<title>FM80S installer</title>
 <style>
   :root { --bg: #000; --fg: #f2f2f2; --dim: #8a8a92; --tile: #16161a; --line: #2a2a30;
           --blue: #287cff; --green: #1ecc70; --yellow: #ffc618; --orange: #ff621a; --red: #ff2c34; }
@@ -86,10 +86,10 @@
     <p><button id="stock-go" disabled data-t="stockGo"></button></p>
     <p class="small" data-t="back"></p>
   </details>
-  <p class="small">SLOOP is based on Felucca by Leo Kuroshita (@kurogedelic), <a href="https://hugelton.com" target="_blank" rel="noopener">Hügelton Instruments</a>.
+  <p class="small">FM80S by Floydus, inspired by SLOOP (isod89) and Felucca. Felucca is by Leo Kuroshita (@kurogedelic), <a href="https://hugelton.com" target="_blank" rel="noopener">Hügelton Instruments</a>.
     Hold OCT− alone while switching on for USB rescue.<br>
     Font: Terminus (Dimitar Toshkov Zhekov, SIL OFL 1.1). Samples: Versilian Studios VSCO-2 Community Edition and VCSL (CC0 1.0), and the Hügelton Sample Pack (© Hügelton Instruments, not CC0).<br>
-    M-VAVE and FM-1 are trademarks of their respective owners; SLOOP is not affiliated with them.<br>
+    M-VAVE and FM-1 are trademarks of their respective owners; FM80S is not affiliated with them.<br>
     <span data-t="license"></span> <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">github.com/hugelton/Felucca</a></p>
 </main>
 <script type="module">
@@ -122,12 +122,12 @@ const TEXT = {
     license: "GPL-3.0、無保証。ソース:",
     stockTitle: "公式ファームウェア（V15）に戻す",
     stockHelp: "M-VAVE のサイトから公式の FM-1 V15 をダウンロードし、中の FM-1.fwsc（変更していないもの）を選んでください。ファイルはこのブラウザの中で確認され、どこにも送られません。",
-    stockBackup: "公式ファームウェアは SLOOP の曲・プロジェクト・サンプルを開けません。先にエディタでバックアップを保存してください（Projects → Backup）。SLOOP を入れ直せば、エディタから復元できます。",
+    stockBackup: "公式ファームウェアは FM80S の曲・プロジェクト・サンプルを開けません。先にエディタでバックアップを保存してください（Projects → Backup）。FM80S を入れ直せば、エディタから復元できます。",
     stockEditor: "エディタを開いてバックアップする", stockSaved: "バックアップをパソコンに保存しました",
     stockFile: "公式の FM-1.fwsc", stockGo: "公式 V15 をインストール",
     stockValid: "公式 V15 を確認しました", stockBad: "公式 V15 ではありません: ",
-    stockConfirm: "FM-1 に公式 V15 をインストールします。SLOOP の曲は公式ファームウェアでは開けません。バックアップは保存しましたか？",
-    stockFinish: "FM-1 は SLOOP の書き込みモードです。先に「インストール」で SLOOP の書き込みを終えてから、公式 V15 に戻してください。",
+    stockConfirm: "FM-1 に公式 V15 をインストールします。FM80S の曲は公式ファームウェアでは開けません。バックアップは保存しましたか？",
+    stockFinish: "FM-1 は FM80S の書き込みモードです。先に「インストール」で FM80S の書き込みを終えてから、公式 V15 に戻してください。",
     back: "M-VAVE のアップデーター M-UPGRADE（Downloads → PC Software）でも戻せます。FM-1 が見つからない場合は、MIDI を使う他のアプリとブラウザのタブを閉じてください。",
   },
   en: {
@@ -156,12 +156,12 @@ const TEXT = {
     license: "GPL-3.0, no warranty. Source:",
     stockTitle: "Return to the official firmware (V15)",
     stockHelp: "Download the official FM-1 V15 from M-VAVE and select the FM-1.fwsc inside it, unmodified. The file is checked in this browser; it is not sent anywhere.",
-    stockBackup: "The official firmware cannot open SLOOP's music, projects or samples. Save a backup with the editor first (Projects → Backup); reinstall SLOOP and restore it from the editor whenever you want them back.",
+    stockBackup: "The official firmware cannot open FM80S's music, projects or samples. Save a backup with the editor first (Projects → Backup); reinstall FM80S and restore it from the editor whenever you want them back.",
     stockEditor: "Open the editor to back up", stockSaved: "I saved a backup on this computer",
     stockFile: "The official FM-1.fwsc", stockGo: "Install the official V15",
     stockValid: "Official V15 verified", stockBad: "Not the official V15: ",
-    stockConfirm: "Install the official V15 on the FM-1? The official firmware cannot open SLOOP's music. Did you save a backup?",
-    stockFinish: "The FM-1 is in SLOOP's update mode. Press Install to finish the SLOOP update first, then return to the official V15.",
+    stockConfirm: "Install the official V15 on the FM-1? The official firmware cannot open FM80S's music. Did you save a backup?",
+    stockFinish: "The FM-1 is in FM80S's update mode. Press Install to finish the FM80S update first, then return to the official V15.",
     back: "M-VAVE's own updater, M-UPGRADE (Downloads → PC Software), works too. If it does not find the FM-1, close every other app and browser tab that uses MIDI.",
   },
 };
@@ -203,7 +203,7 @@ window.addEventListener("beforeunload", (e) => { if (writing) { e.preventDefault
       if (h !== meta.sha256) { sayK("badpkg"); log(`sha256 ${h}, expected ${meta.sha256}`); return; }
     }
     image = logicalImage(pkg);
-    say(`SLOOP ${meta.version}`);
+    say(`FM80S ${meta.version}`);
     lockAll(writing);
   } catch (e) { sayK("loadfail", e.message); }
 })();

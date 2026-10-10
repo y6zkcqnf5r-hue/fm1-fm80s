@@ -189,5 +189,5 @@ static void ota_commit(const uint8_t *parm)
 #if FELUCCA_OTA
 #include "recovery.c"        /* early, polled USB updater; no synth or settings */
 #endif
-#include "splash.c"          /* SLOOP boot logo (build/gen/sloop_logo.h) */
+#include "fm80s_splash.c"    /* FM80S: our boot image (build/gen/fm80s_splash.h) in place of SLOOP's splash.c */
 #include "main.c"
