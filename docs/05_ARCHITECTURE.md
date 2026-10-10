@@ -1,125 +1,85 @@
-# 05 — Architecture minimale de FM80S
+# 05 — Architecture de FM80S (fork de SLOOP)
 
-> v0.1, 2026-10-10. La plateforme vient de Trawler (`../FM1`, dépôt archivé `y6zkcqnf5r-hue/fm1-trawler`, commit `153f4f4`), dont l'architecture détaillée reste la référence : `../FM1/docs/05_ARCHITECTURE.md`. Ce document ne dit que ce qui change, et ce qu'on reprend.
+> v0.2, 2026-10-10. FM80S est un fork de SLOOP 2.5 (ADR-036) : l'arbre, le build et les tests sont ceux de SLOOP, décrits dans son `BUILDING.md` et en tête de ses fichiers. Ce document dit comment on s'y place et ce qu'on y ajoute. L'architecture v0.1 (plateforme de Trawler, `plat.h`, interface de moteur) est gardée sous le tag `plateforme-trawler` (ADR-045).
+>
+> Tant que F0-01 n'est pas faite, le dépôt contient encore l'ancienne plateforme ; le code de SLOOP est cloné en lecture seule dans `vendor-ref/sloop-fm1`.
 
-## 1. Les trois cibles
+## 1. Les cibles
 
 | Cible | Build | Rôle |
 | --- | --- | --- |
-| Hôte natif | `make host` → `build/host/fm80s` | Simulateur scripté : scénarios `.trs` → WAV + PNG, tests |
-| Navigateur | `make web` → `build/emu/` (`fm80s.wasm`, `worklet.js`, `index.html`, `panel.js`, `keymap.js`) | Le FM-1 virtuel : le même code C en wasm dans un AudioWorklet |
-| FM-1 | P0-02 : `plat_fm1.c` sur la couche matérielle de Felucca | L'appareil |
+| FM-1 | `./build.sh` → `build/felucca.fwsc` (renommé en F0-01) | Le firmware installé depuis Chrome ou Edge (installateur web de SLOOP) ou `tools/fm1_install.py` |
+| Ordinateur | `tests/run_tests.sh` → `build/host/` | Les tests de SLOOP : rendus WAV (`tests/hostsim.c`), écrans en PPM (`tests/ui_pages_test.c`), golden, budget CPU |
+| Navigateur | F0-02 : `web/emu/` | Le FM-1 virtuel : le même firmware en wasm, dans un AudioWorklet (ADR-041) |
 
-Le même code (`firmware/src/`) tourne sur les trois. Seuls `host/`, `web/emu/` et `plat_fm1.c` savent sur quelle cible ils sont.
-
-## 2. Les dossiers
+## 2. L'arbre de SLOOP, en bref
 
 ```
-firmware/src/app/     main.c, plat.h (la frontière), config.h (limites et budgets), cmdq.*
-firmware/src/dsp/     les briques : fixed.h, osc.h, env.*, svf.*, noise.h
-firmware/src/engine/  les moteurs, un fichier chacun : engine.h, drums.c (P0-01), va.c (P2-01)…
-firmware/src/core/    l'horloge, les pistes, le looper, les scènes (à partir de P1-01)
-firmware/src/ui/      gfx.*, la police, un écran par moteur et par fonction
-host/                 plat.h sur l'hôte, lanceur de scénarios, WAV, PNG
-web/emu/              wrapper wasm, worklet, page, panneau SVG, clavier
-tests/                unit/, scenarios/*.trs, golden/, host/ (parité, golden), lint/
-tools/                gen_tables.py, gen_font.py, size_report.py, lint.sh
-assets/fonts/         Terminus (OFL)
+firmware/src/felucca.c   la seule unité de compilation : elle inclut tous les .c ci-dessous
+firmware/src/core.h      NVOICE, NPART, NTRK, TRK_DRUM, les structures des pistes et de la song
+firmware/src/eng_*.c     les 12 moteurs ; engines.c (arènes partagées de GRAIN, FM6, PHYS)
+firmware/src/seq.c       le séquenceur et le looper ; voice.c (budget de 8 voix) ; drums.c ; fx.c
+firmware/src/ui*.c       les écrans, les calques (ui_layers.c), la saisie (ui_input.c), splash.c
+firmware/src/project.c   le format des projets (FUN5) ; storage.c (la flash) ; editor.c (SysEx de l'éditeur)
+firmware/hal/            la couche matérielle de Felucca (fm1_*.h) ; firmware/app.ld (les zones mémoire)
+tools/                   build.py, gen_tables.py, gen_logo.py, gen_font.py, fm1pkg_make.py…
+tests/                   run_tests.sh, regress.c, golden.txt, cpu_baseline.txt, hostsim.c, ui_pages_test.c…
+web/                     l'éditeur (editor.html), l'installateur, EDITOR_PROTOCOL.md
+docs/                    la page publiée de SLOOP (installateur, éditeur) — nos docs y sont ajoutées
 ```
 
-## 3. Ce qu'on reprend de Trawler (ADR-012)
+Nos documents (`03_PRD.md` à `10_FAISABILITE_8_PISTES.md`) vont dans `docs/` à côté de la page de SLOOP. *À vérifier en F0-01 :* si `docs/` est servi tel quel par GitHub Pages, nos `.md` y seront visibles ; c'est sans risque, mais on peut les mettre dans `docs/fm80s/`.
 
-On copie les fichiers, on renomme `trawler` en `fm80s`, et on note leur origine dans `LICENSING.md`. Il n'y a pas de lien entre les deux dépôts.
+## 3. Le dépôt et l'amont (ADR-037)
 
-| Repris | Notes |
-| --- | --- |
-| `firmware/src/app/plat.h`, `config.h` | Les budgets tels quels ; les limites `TRK_*` du tracker disparaissent |
-| `firmware/src/dsp/fixed.h`, `osc.h`, `env.*`, `svf.*` | Tels quels, avec leurs tests |
-| `firmware/src/tracker/cmdq.*` | Passe dans `app/` |
-| `sclock` de `firmware/src/tracker/seq.c` | Devient `core/clock.*` en P1-01, à 96 ticks par noire (spec §3) |
-| `firmware/src/ui/gfx.*`, `tools/gen_font.py`, `assets/fonts/` | Le thème change (spec §5) |
-| `host/` (sauf `mockup.c`), `web/emu/` | Renommés ; les sondes `expect` de l'app changent (`ui_probe`) |
-| `tests/unit/test.h`, `render.h`, `test_fixed.c`, `test_gfx.c`, la partie osc / env / svf de `test_wav.c` (devenu `test_dsp.c`) ; `tests/host/*`, `tests/lint/` | |
-| `tools/gen_tables.py`, `size_report.py`, `lint.sh`, `Makefile`, `.github/workflows/ci.yml`, `.claude/launch.json` | |
+- **F0-01 :** tag `plateforme-trawler` sur l'ancienne main ; main repart de l'historique de SLOOP (`fa9ce57`, version 2.5), puis un commit ajoute nos docs et notre `CLAUDE.md` ; push forcé, validé par Anthony avant.
+- **L'amont :** `git remote add sloop https://github.com/isod89/sloop-fm1.git`. Quand SLOOP publie une version, on la fusionne dans une branche, on lance les tests, et Anthony essaie avant de fusionner dans main.
+- **Pour que ces fusions restent faciles :**
+  - on change le moins de lignes possible dans les fichiers de SLOOP ;
+  - ce qui est à nous va dans des fichiers à nous quand c'est possible (`fm80s_*.c`, `tools/gen_fm80s_*.py`, `web/emu/`) ;
+  - on marque nos changements dans les fichiers de SLOOP d'un commentaire `/* FM80S: ... */`.
+- `LICENSING.md` de SLOOP est gardé et complété (nos fichiers, l'image de démarrage, le code repris de P0-01 pour l'émulateur).
 
-**Ce qu'on laisse :** `tracker/model`, `seq`, `instr`, `fx`, les vues et la saisie de `ui/`, et `dsp/voice.*`, une voix faite pour le tracker.
+## 4. Le build et les tests
 
-## 4. L'interface de moteur (ADR-014)
-
-```c
-/* firmware/src/engine/engine.h, la forme visée (elle peut bouger dans P0-01) */
-#define ENG_PARAMS 128                  /* octets de son par piste */
-#define ENG_METERS 16
-
-typedef struct {
-    volatile uint8_t meter[ENG_METERS]; /* écrit par l'audio : le niveau de chaque voix, 0..255 */
-    /* ... l'état propre du moteur suit (union par piste, taille max fixée à la compilation) */
-} eng_head_t;
-
-typedef struct {
-    const char *name;                   /* "DRUMS" */
-    uint16_t state_size;                /* vérifiée à la compilation contre l'union */
-    const uint8_t *defaults;            /* ENG_PARAMS octets : le son d'usine */
-    void (*init)(void *st);
-    void (*note_on)(void *st, const uint8_t *p, int note, int vel);   /* batterie : note = son 0..15 */
-    void (*note_off)(void *st, const uint8_t *p, int note);
-    void (*render)(void *st, const uint8_t *p, int32_t *lr, int n);   /* ajoute n frames L R, Q15 */
-    int (*cost)(const void *st);        /* MAC par frame déclarés, voix actives seulement */
-} engine_t;
-```
-
-- `p` désigne les octets du son de la piste. Ils sont écrits par l'interface seule et relus par le moteur à chaque sous-bloc de 16 frames : les potards agissent en direct.
-- Les enveloppes et les coefficients se calculent par sous-blocs de 16 frames (règle 5).
-
-## 5. La frontière entre l'interface et l'audio (ADR-015)
-
-C'est celle de Trawler :
-
-- `app_frame()` (~60 Hz) lit les contrôles, pousse les notes dans `cmdq`, écrit les octets de son et dessine ;
-- `app_audio()` vide `cmdq`, appelle `render` pour chaque piste, applique MASTER avec une rampe, et publie les niveaux (`meter`).
-
-Il y a un seul écrivain par donnée partagée, et chaque écriture se fait en un seul coup sur 8 ou 32 bits.
-
-## 6. Le build et les commandes
-
-Ce sont les commandes de Trawler, avec les mêmes flags (`-ffp-contract=off -fwrapv`) et Emscripten **6.0.11** figé (en Docker avec `DOCKER=1`, ou en emsdk local à la même version) :
+Les prérequis de SLOOP sur Mac (`BUILDING.md`) :
+- Docker Desktop : la chaîne JieLi (clang 4.0.1 pour pi32v2) est Linux x86-64 seulement ; chaque outil tourne dans un conteneur `linux/amd64` (Rosetta sur Apple silicon) ;
+- la chaîne JieLi : `tools/get_toolchain.sh` ;
+- 3 fichiers du SDK AC79 (Apache-2.0) : un clone de `fw-AC79_AIoT_SDK` dans `~/fw-AC79_AIoT_SDK` ;
+- Python 3 avec Pillow ; Node.js pour les tests web.
 
 ```sh
-make host        # simulateur natif
-make web         # FM-1 virtuel dans build/emu
-make serve       # http://localhost:8080
-make test        # lint + unitaires + golden + taille + scénarios + parité wasm/natif
-make golden      # accepte les nouveaux WAV et PNG, après écoute
-make size        # RAM, pool, code face aux budgets
-make lint        # pas de float/double/malloc/printf dans firmware/src, en-têtes SPDX
+./build.sh                # le firmware : build/felucca.fwsc (app + loader)
+tests/run_tests.sh        # les tests sur l'ordinateur (demande le build d'abord)
+GOLDEN_UPDATE=1 sh tests/run_tests.sh   # après un changement de son voulu, puis relire le diff de golden.txt
 ```
 
-Make 3.81 de macOS compare les dates à la seconde près : après une modification automatique, supprimer le binaire avant de relancer.
+- `tools/build.py` refuse le build si le pool a moins de 8 Kio libres : c'est notre garde-fou mémoire.
+- Le budget CPU se compare à `tests/cpu_baseline.txt` (+25 %) et `tests/target_budget.txt` (+10 %).
+- F0-01 vérifie que tout cela marche sur le Mac d'Anthony, et note les premières mesures (RAM, pool, code).
 
-## 7. Les tests (ADR-023)
+## 5. Le FM-1 virtuel (F0-02, F0-03, ADR-041)
 
-| Niveau | Ce qu'on vérifie |
-| --- | --- |
-| Unitaires | Point fixe, osc / env / svf (repris), bruit LFSR déterministe, chaque son de batterie |
-| Rendus de référence | `tests/unit/test_drums.c` écrit un WAV par son dans `build/renders/drums/` ; leurs hashes sont dans `tests/golden/renders/drums.sha256`, acceptés seulement après écoute |
-| Scénarios | `tests/scenarios/drums.trs` : frapper les touches, tourner les potards, `wav`, `shot` ; golden du WAV et du PNG |
-| Parité | `tests/host/emu_test.mjs` : le wasm rejoue chaque scénario et rend les mêmes octets que le natif |
-| Taille | `make size` : objets ELF 32 bits par clang (ADR-020 de Trawler), budgets de `app/config.h` |
+```
+web/emu/fm80s_emu.c   inclut les sources du firmware comme tests/ui_pages_test.c, avec des bouchons fm1_* :
+                      entrées (touches, boutons, potards), écran (la bande de 240×124 recopiée dans un
+                      tampon 240×240), LED, flash en mémoire, minuterie avancée par l'audio
+web/emu/worklet.js    l'AudioWorklet : blocs de 256 frames à 44,1 kHz (repris de P0-01)
+web/emu/index.html, panel.js, keymap.js   la page, le panneau SVG, le clavier AZERTY (repris de P0-01)
+```
 
-## 8. Le budget CPU
+- Compilé en wasm **sans la colle d'Emscripten**, comme en P0-01, avec Emscripten **6.0.11** figé (Docker ou emsdk local).
+- **L'horloge avance avec l'audio** : demander des frames fait tourner le firmware, comme dans P0-01 ; pas de dérive entre le son et l'écran.
+- La page demande ses fichiers avec `?v=<somme du build>` (leçon de P0-01 : Safari gardait l'ancien worklet).
+- **F0-03, la parité :** le wasm rend les mêmes octets que le natif pour les rendus de `tests/golden.txt`, avec `-ffp-contract=off` (SLOOP a des `float` dans `fm6_core.c` et `phys_dsp.c`).
+- Le code repris de P0-01 et de Trawler garde son en-tête et ses crédits (Charles Vestal pour la forme du worklet et du panneau).
 
-**Avant P0-02**, on applique le modèle de coût de Trawler (`../FM1/docs/05_ARCHITECTURE.md` §7) :
-- chaque moteur déclare un coût en MAC par frame et par voix active ;
-- `app_cost()` (dans `plat.h`) rend le coût déclaré du dernier bloc ; sur l'hôte, `plat_cpu_pct()` le rapporte à `CPU_REF_MAC` (600 MAC par frame = 100 %, `app/config.h`) ;
-- la page affiche la jauge « CPU estimé », le maximum de la dernière seconde, rouge au-dessus de 50 % (ADR-031).
+## 6. La CI et la page publiée (F0-03)
 
-**En P0-02**, sur l'appareil :
-- on mesure `fm1_ticks()` autour de `app_audio`, et on l'affiche à l'écran ;
-- on recale la référence du modèle sur cette mesure ;
-- on fixe le nombre de voix par moteur.
+- SLOOP n'a pas de CI. On en ajoute une : `./build.sh` et `tests/run_tests.sh` sur Linux x86-64 (la chaîne JieLi y tourne sans Docker), puis le build de l'émulateur.
+- La page publiée sur https://y6zkcqnf5r-hue.github.io/fm1-fm80s/ montre le FM-1 virtuel et l'installateur de FM80S.
 
-## 9. La CI et GitHub Pages (ADR-024)
+## 7. Le CPU
 
-- Le même workflow que Trawler : `make lint test web DOCKER=1` à chaque push et à chaque PR, avec les actions épinglées par commit.
-- Un push sur `main` publie `build/emu` sur https://y6zkcqnf5r-hue.github.io/fm1-fm80s/.
-- Un réglage manuel est à faire une fois dans le dépôt GitHub : *Settings → Pages → Source : GitHub Actions*.
+- On ne réécrit pas de modèle de coût : SLOOP mesure en relatif sur l'ordinateur (`cpu_baseline.txt`) et sur l'appareil (GLO → SYSTEM, potard 4). Il coupe une voix quand deux demi-tampons de suite dépassent 85 %.
+- **F1-01 mesure les 8 pistes sur le FM-1**, avec le même affichage, avant de dessiner leur interface.

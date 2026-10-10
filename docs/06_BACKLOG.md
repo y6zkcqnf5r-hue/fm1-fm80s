@@ -1,80 +1,58 @@
 # 06 — Backlog de FM80S
 
-> v0.1, 2026-10-10. Court à dessein : seules P0-01 et P0-02 sont détaillées. Les autres stories tiennent en une ligne ; on les précise quand on les commence, après l'avis d'Anthony sur la précédente.
+> v0.2, 2026-10-10 : FM80S repart d'un fork de SLOOP 2.5 à 8 pistes (ADR-036 à ADR-045). Seule F0-01 est détaillée ; les autres stories tiennent en quelques lignes et se précisent quand on les commence, après l'avis d'Anthony sur la précédente.
+>
+> Le backlog v0.1 (plateforme Trawler) s'arrête à **P0-01, faite** (la batterie au clavier dans le navigateur) ; son code est sous le tag `plateforme-trawler`.
 
 **Règles communes :**
 - On fait une story à la fois, en mode plan d'abord.
 - Une story est finie quand :
-  - `make lint test web` est au vert ;
-  - le commit cite l'ID de la story (ex. `P0-01: batterie au clavier`) ;
-  - **Anthony l'a essayée dans le navigateur (puis sur l'appareil) et a donné son avis.** On ne commence pas la suivante avant.
-- Chaque nouveau moteur arrive avec son golden et son écran.
+  - `./build.sh` et `tests/run_tests.sh` sont au vert (plus, dès F0-02, le build et les tests de l'émulateur) ;
+  - le commit cite l'ID de la story (ex. `F0-01: image de démarrage`) ;
+  - **Anthony l'a essayée (sur le FM-1, puis aussi dans le navigateur dès F0-02) et a donné son avis.** On ne commence pas la suivante avant.
+- On garde les golden de SLOOP identiques, sauf changement de son voulu et écouté.
 
-## Jalon P0 — Ça sonne
+## Jalon F0 — FM80S tourne
 
-### P0-01 — La batterie au clavier, dans le navigateur
-
-**Ce qu'on fait :**
-- On reprend la plateforme de Trawler (`05_ARCHITECTURE.md` §3), avec le renommage et `LICENSING.md`.
-- On écrit l'interface de moteur (`engine.h`) et le moteur Drums v1 : les 16 sons de la spec §2.2, et le bruit LFSR.
-- Les touches blanches jouent les sons ; les potards règlent le dernier son frappé ; MASTER est le volume.
-- On dessine l'écran des 16 pads (spec §5), et les LED suivent les sons.
-- La page renommée affiche la jauge CPU estimé.
-- On met en place la CI et GitHub Pages pour `fm1-fm80s`.
-
-**Tu essaies :**
-- `make serve`, puis http://localhost:8080 dans Safari ;
-- tu joues un rythme sur `W X C V B N ,` (sons 1–7) et `A Z E R T Y U I O` (sons 8–16) en AZERTY, ou au panneau ;
-- tu tournes les potards avec ⌥ + 1…8 ou à la souris ;
-- ensuite, la même chose sur la page publiée.
-
-**Fait quand :**
-- les 16 sons sont jouables et réglables ;
-- le hat fermé coupe le hat ouvert ;
-- les golden `drums` (un WAV par son, écoutés) et le scénario `drums.trs` passent, avec la parité wasm/natif ;
-- `make size` est sous les budgets ;
-- la CI est verte et la page est publiée.
-
-### P0-02 — Le premier son sur le FM-1
+### F0-01 — FM80S sur le FM-1
 
 **Ce qu'on fait :**
-- `plat_fm1.c` minimal sur la couche matérielle de Felucca : l'audio, les touches, les potards, l'écran et les LED. Le stockage attendra.
-- La batterie de P0-01 jouée aux touches de l'appareil.
-- Le CPU mesuré (`fm1_ticks()` autour de `app_audio`) affiché à l'écran.
-- On recale le modèle de coût sur cette mesure, et on fixe le nombre de voix par moteur.
+- Le dépôt (ADR-037) : tag `plateforme-trawler` ; main repart de l'historique de SLOOP 2.5, plus nos docs et notre `CLAUDE.md` ; remote `sloop`. **Le push forcé de main t'est demandé avant.**
+- Le build sur ton Mac : Docker Desktop, la chaîne JieLi, les 3 fichiers du SDK AC79 (on te guide pas à pas). Première mesure de la RAM, du pool et du code, notée dans `10_FAISABILITE_8_PISTES.md` (Q-10).
+- Le nom FM80S à l'écran et sur le fichier installé, le crédit « d'après SLOOP et Felucca » (spec §1, ADR-044).
+- L'image de démarrage synthwave : un script la génère au format de SLOOP (240×188, 16 couleurs) ; **tu la valides sur un PNG avant qu'on construise.**
+- `README.md` et `LICENSING.md` réécrits pour FM80S.
 
 **Tu essaies :**
-- tu flashes l'appareil (on te guide pas à pas) et tu joues ;
-- on note le CPU avec un son, puis avec les 16 sons frappés d'un coup.
+- tu installes FM80S depuis Chrome (pas à pas ; pour revenir en arrière : la même page avec le firmware d'origine) ;
+- tu vois l'image de démarrage et le nom ;
+- tu suis « Un beat en soixante secondes » de `DEMARRAGE-RAPIDE-FR.md` : batterie en prise libre, overdub, une basse, la gamme avec SEL, un punch-in avec FX ; puis le kit *synthwave* et un lead supersaw.
 
-**Quand :** dès réception du FM-1 (semaine du 2026-10-12). Si l'appareil n'est pas encore là après P0-01, on fait d'abord P1-01 (ADR-022).
+**Ton avis, à noter dans `08_DECISIONS.md` :** les calques à tenir te vont-ils (Q-07) ? Le punch-in sur les blanches (Q-08) ? Les 4 sections (Q-01) ? La gamme sur les blanches (Q-02) ? Que manque-t-il le plus ?
 
-## Jalon P1 — Ça boucle (la batterie seule)
+**Fait quand :** le firmware se construit sur ton Mac, les tests de SLOOP passent sans changer un golden, FM80S tourne sur ton FM-1, et tu as donné ton avis.
 
-- **P1-01 — Le transport :** PLAY / STOP, le tempo (GLO), le métronome, la longueur choisie d'avance (1, 2, 4 ou 8 mesures), l'horloge à 96 ticks par noire (spec §3).
-- **P1-02 — Le séquenceur de batterie :** SEQ ; les 16 touches blanches sont les pas et les LED montrent le motif ; SEL + touche blanche choisit le son ; de 16 à 128 pas, par pages.
-- **P1-03 — Enregistrer en direct :** REC, overdub, quantification (aucune, 1/16 ou 1/8), annuler la dernière prise, effacer, mélanger avec les pas. → *une vraie boucle de batterie, jouée et programmée.*
+### F0-02 — Le FM-1 virtuel : le son, les touches, l'écran
 
-## Jalon P2 — Plusieurs pistes
+Le vrai firmware en wasm dans Safari (architecture §5) : les touches, les boutons et les potards au clavier AZERTY et au panneau de P0-01, l'écran, le son. **Tu essaies** la même boucle que sur l'appareil, dans le navigateur, et tu compares.
 
-- **P2-01 — Le moteur VA (basse)**, avec son golden et son écran vivant.
-- **P2-02 — 8 pistes :** SEL + touche noire choisit la piste ; un moteur par piste ; mute ; la longueur fixée par la première prise.
-- **P2-03 — Les gammes et le mode facile.**
-- **P2-04 — L'arpégiateur :** les modes classiques, repeat, gate, vitesse.
+### F0-03 — Le FM-1 virtuel fidèle et publié
 
-## Jalon P3 — Le son
+La parité wasm/natif sur les rendus de `tests/golden.txt`, les projets gardés dans le navigateur, les LED, la CI (build du firmware, tests, émulateur) et la page publiée. **Tu essaies** la page publiée.
 
-- **P3-01 — Les effets :** filtre et saturation par piste ; delay synchronisé et réverbe (dont la gated) en envoi ; saturation façon bande et limiteur sur le master.
-- **P3-02 — Le punch-in :** FX + les touches noires.
-- **P3-03 — Le moteur Supersaw.**
-- **P3-04 — Le moteur FM à 4 opérateurs.**
+## Jalon F1 — 8 pistes (`10_FAISABILITE_8_PISTES.md`)
 
-## Jalon P4 — Le morceau
+- **F1-01 — 8 pistes sous le capot :** `NPART 7`, `NTRK 8`, `TRK_DRUM 7` ; moteurs lourds sur les pistes 1–3 (ADR-039, Q-09) ; slicer partagé (ADR-040) ; les vrais bugs à 8 (faisabilité §7) ; le vol de voix à 7 parties ; mesures de la RAM, du pool et du CPU, sur le FM-1 ; le choix pour les sections (Q-11), et une solution provisoire pour qu'elles marchent. L'écran reste celui de SLOOP : on choisit les pistes 5–8 au potard ALGORITHM. **Tu essaies** : 8 pistes qui jouent ensemble, dans l'émulateur et sur le FM-1, et on lit le CPU.
+- **F1-02 — 8 pistes à l'écran et sous les doigts :** écran TRACKS à 8, 8 couleurs, choix de piste à SEL + touche noire, mute / solo / niveaux à 8 dans GLO (spec §3.2). **Tu choisis** la disposition de l'écran sur deux captures, puis tu joues.
+- **F1-03 — Les projets à 8 pistes :** format `FUN6`, conversion des projets de SLOOP, carte de la flash, sections ; l'éditeur web et son protocole. **Tu essaies** : sauvegarder, éteindre, rallumer, recharger ; ouvrir un projet de SLOOP.
 
-- **P4-01 — Les 16 scènes**, avec le changement à la fin de la boucle.
-- **P4-02 — La song :** une liste de 64 entrées, qu'on écrit ou qu'on enregistre en direct.
-- **P4-03 — Les sons et la sauvegarde :** presets par moteur, projets.
+## Jalon F2 — L'identité synthwave
 
-## Plus tard (non ordonné)
+- **F2-01 — Le thème FM80S :** palette d'écran, couleurs, icônes (Q-12).
+- **F2-02 — Des sons synthwave :** une banque de presets et un kit, à partir des moteurs de SLOOP.
+- **F2-03 — Les écrans vivants :** un écran animé par moteur, qui montre ce que font les potards.
+- **F2-04 — La réverbe gated**, signature de la caisse claire synthwave.
 
-L'écran vivant propre à Drums ; SEL + potard (les 4 paramètres suivants) ; les accents ; d'autres kits ; les moteurs suivants du PRD §3.
+## Plus tard, à trier après avoir joué SLOOP
+
+16 scènes au lieu de 4 sections (Q-01) ; le punch-in sur les touches noires (Q-08) ; le mode facile du PRD (Q-02) ; un moteur VA ou Supersaw à nous si ceux de SLOOP ne suffisent pas ; l'avenir de l'éditeur web ; suivre les nouvelles versions de SLOOP.
