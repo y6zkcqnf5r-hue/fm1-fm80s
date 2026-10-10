@@ -7,6 +7,8 @@ On le développe d'abord dans le navigateur, avec **le même code C** que celui 
 ## Où en est-on
 
 - **La vision : écrite**, à relire dans [`docs/03_PRD.md`](docs/03_PRD.md).
+- **La spec, l'architecture et le backlog : écrits, en version minimale** : [`docs/04_SPEC.md`](docs/04_SPEC.md), [`docs/05_ARCHITECTURE.md`](docs/05_ARCHITECTURE.md), [`docs/06_BACKLOG.md`](docs/06_BACKLOG.md), [`docs/08_DECISIONS.md`](docs/08_DECISIONS.md).
+- **Prochaine étape : P0-01**, la batterie jouée au clavier dans le navigateur.
 - **Le code : à venir.** Il reprend la plateforme et le DSP de [Trawler](https://github.com/y6zkcqnf5r-hue/fm1-trawler), un tracker pour le FM-1 arrêté (archivé) parce que l'ergonomie du FM-1 ne convient pas à un tracker.
 
 ## Licence et marques

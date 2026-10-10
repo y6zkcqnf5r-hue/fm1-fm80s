@@ -9,6 +9,15 @@ Un firmware pour le synthé de poche M-VAVE FM-1 : plusieurs moteurs de synthès
 
 La plateforme et le DSP viennent de Trawler (`../FM1`, dépôt `y6zkcqnf5r-hue/fm1-trawler`, archivé), le tracker arrêté le 2026-10-10.
 
+Documents à lire avant toute tâche, dans cet ordre :
+
+1. `docs/03_PRD.md` — vision, périmètre, critères de succès
+2. `docs/04_SPEC.md` — contrôles, interface de moteur, moteur Drums, esquisse de la boucle, budget mémoire
+3. `docs/05_ARCHITECTURE.md` — dossiers, ce qu'on reprend de Trawler, build, tests, CPU
+4. `docs/06_BACKLOG.md` — l'ordre des stories (on prend la prochaine non faite)
+5. `docs/08_DECISIONS.md` — décisions et questions ouvertes
+6. `../FM1/docs/01_FM1_HARDWARE.md` — contraintes de la puce, à relire avant tout code DSP
+
 ## Règles non négociables (reprises de Trawler)
 
 1. **Entiers seulement dans `firmware/src/`.** Pas de `float` ni de `double` : point fixe (Q15 niveaux, Q12 gains, phase 32 bits). Les constantes se calculent sur l'ordinateur (`tools/gen_tables.py`).
