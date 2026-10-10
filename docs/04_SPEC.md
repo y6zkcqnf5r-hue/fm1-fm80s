@@ -28,8 +28,9 @@
 | MASTER | Volume général |
 | Touches noires, autres boutons | Rien en P0-01 |
 
-- **Potards :** la valeur va de 0 à 255. Chaque cran ajoute ±2, et ±8 quand on tourne vite (crans espacés de moins de 40 ms). *[À régler à l'essai.]*
-- **LED :** une touche blanche reste allumée tant que son son résonne. La LED suit le niveau du son, comme le pad à l'écran.
+- **Potards :** la valeur va de 0 à 255. Chaque cran ajoute ±2, et ±8 quand on tourne vite (crans espacés de moins de 40 ms). *[À régler à l'essai : constantes `UI_KNOB_*` de `ui/ui.h`.]* Au démarrage, ils règlent le kick long.
+- **LED :** le FM-1 n'a que trois états par LED (éteinte, faible lueur, allumée). Une touche blanche est allumée tant qu'on la tient ou que son son est au-dessus du quart de son niveau, en faible lueur tant qu'il résonne encore, éteinte quand il est fini (ADR-029). Le pad à l'écran, lui, suit le niveau par paliers de 6 dB.
+- **Coup unique :** relâcher la touche ne coupe pas le son, qui va au bout de sa décroissance (ADR-028).
 - **Pas de vélocité :** le FM-1 n'en a pas. Chaque coup a la même force ; les accents viendront plus tard.
 
 ## 2. Les moteurs
@@ -77,7 +78,9 @@ Les octets 4 à 7 de chaque son sont réservés : panoramique, saturation, etc.,
 - rejouer un son coupe sa note précédente, avec un fondu de 2 ms, comme la voix de Trawler ;
 - le hat fermé coupe le hat ouvert.
 
-**Le coût (déclaré, pas mesuré) :** de 4 à 20 MAC par frame et par son actif, selon le son. Avec les 16 sons frappés d'un coup, on vise environ 150 MAC par frame. À recaler en P0-02 avec la mesure sur l'appareil. La banque métallique peut être commune aux hats, au crash et au ride, pour réduire ce coût.
+**Le coût (déclaré, pas mesuré) :** de 5 à 14 MAC par frame et par son actif, selon le son. Les 16 sons frappés d'un coup déclarent 135 MAC par frame, soit 22 % de la référence (ADR-031). À recaler en P0-02 avec la mesure sur l'appareil. Chaque métal a sa propre banque de 6 carrés, pour que TUNE l'accorde seul (ADR-033).
+
+**Le moteur tel qu'écrit (P0-01) :** `firmware/src/engine/drums.c`. Chaque son suit une recette (un modèle parmi huit, ses hauteurs, ses plages de DECAY et de TONE, son filtre, son gain), et les quatre potards se relisent tous les 16 frames. Les réglages d'usine sont une première passe, à reprendre à l'oreille.
 
 ## 3. La boucle (esquisse, *provisoire* : à confirmer en P1)
 

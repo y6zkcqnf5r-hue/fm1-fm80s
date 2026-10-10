@@ -5,6 +5,7 @@
  * Shape from FoMni's host/omni_host.c (Charles Vestal), rewritten for Trawler. */
 #include <string.h>
 #include "host.h"
+#include "app/config.h"
 #include "dsp/fixed.h"
 
 struct host host;
@@ -139,7 +140,8 @@ int plat_store_save(int slot, const uint8_t *buf, int len)
 }
 
 /* --------------------------------------------------------- diagnostics --- */
-int plat_cpu_pct(void) { return 0; }    /* the cost model arrives in P3-09; measuring would not be deterministic */
+/* the cost model (docs/05_ARCHITECTURE.md §8): measuring would not be deterministic */
+int plat_cpu_pct(void) { return app_cost() * 100 / CPU_REF_MAC; }
 int plat_xruns(void) { return 0; }
 
 /* ---------------------------------------------------------- the device --- */
@@ -166,6 +168,7 @@ void host_boot(void)
     memset(host.fb, 0, sizeof host.fb);
     host.blits = 0;
     host.peak = 0;
+    host.cpu_peak = 0;
     host.midi_w = host.midi_r = 0;
     host.midi_out = host.midi_last = 0;
     audio_acc = 0;
@@ -180,6 +183,9 @@ static void render_block(void)
     int i;
     memset(lr, 0, sizeof lr);
     app_audio(lr, BLOCK);
+    i = plat_cpu_pct();
+    if (i > host.cpu_peak)
+        host.cpu_peak = i;
     for (i = 0; i < 2 * BLOCK; i++) {
         int16_t s = sat16(lr[i]);
         int32_t a = s < 0 ? -(int32_t)s : s;

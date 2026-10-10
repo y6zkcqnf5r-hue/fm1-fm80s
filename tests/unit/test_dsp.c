@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
-/* The WAV engine (P1-03): polyBLEP oscillators against naive ones (spectrum), the SVF against a
- * double-precision model of the same equations, no overflow at full resonance, ADSR timing, VOL
- * and PAN, and the reference renders of each waveform (build/renders/eng_wav, golden). */
+/* The DSP bricks taken from Trawler: polyBLEP oscillators against naive ones (spectrum), the SVF
+ * against a double-precision model of the same equations, no overflow at full resonance, ADSR
+ * timing. */
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "test.h"
-#include "render.h"
 #include "dsp/env.h"
 #include "dsp/osc.h"
 #include "dsp/svf.h"
-#include "dsp/voice.h"
 
 #define N 4096
 
@@ -252,102 +250,4 @@ static void test_env(void)
     printf("  env: attack %d sub-blocks (want %d), 10 s release ends after %d\n", want, want, n);
 }
 
-static patch_t patch(int shape, int flt, int cut, int res)
-{
-    patch_t p;
-    p.engine = VOICE_WAV;
-    p.shape = (uint8_t)shape;
-    p.flt = (uint8_t)flt;
-    p.cut = (uint8_t)cut;
-    p.res = (uint8_t)res;
-    p.atk = 0x20;
-    p.dec = 0x90;
-    p.sus = 0xA0;
-    p.rel = 0x80;
-    p.vol = 0x80;
-    p.pan = 0x80;
-    return p;
-}
-
-static int32_t lr[2 * FS];
-
-static int32_t peak_of(int ch, int n)
-{
-    int32_t pk = 0;
-    int i;
-    for (i = 0; i < n; i++)
-        if (abs(lr[2 * i + ch]) > pk)
-            pk = abs(lr[2 * i + ch]);
-    return pk;
-}
-
-static void play(const patch_t *p, int note, int gate, int total)
-{
-    voice_t v;
-    memset(lr, 0, sizeof lr);
-    voice_reset(&v);
-    voice_note(&v, note * 16, 0xFF, p);
-    voice_render(&v, lr, gate);
-    voice_off(&v);
-    voice_render(&v, lr + 2 * gate, total - gate);
-}
-
-static void test_vol_pan(void)
-{
-    patch_t p = patch(SHP_SIN, FLT_OFF, 0xFF, 0);
-    int32_t full, half, twice;
-    int i, same = 1;
-    p.sus = 0xFF;
-    play(&p, 57, 8000, 8000);
-    full = peak_of(0, 8000);
-    for (i = 0; i < 8000; i++)
-        if (lr[2 * i] != lr[2 * i + 1])
-            same = 0;
-    CHECK(same);                                     /* 80: centre, both sides at 0 dB */
-    CHECK(full > 16000 && full <= 16383);
-    p.vol = 0x40;
-    play(&p, 57, 8000, 8000);
-    half = peak_of(0, 8000);
-    p.vol = 0xFF;
-    play(&p, 57, 8000, 8000);
-    twice = peak_of(0, 8000);
-    CHECK(abs(2 * half - full) < full / 100);
-    CHECK(abs(twice - 2 * full * 255 / 256) < full / 50);
-    p.vol = 0x80;
-    p.pan = 0x00;
-    play(&p, 57, 8000, 8000);
-    CHECK_EQ(peak_of(1, 8000), 0);
-    CHECK(peak_of(0, 8000) == full);
-    p.pan = 0xFF;
-    play(&p, 57, 8000, 8000);
-    CHECK_EQ(peak_of(0, 8000), 0);
-    p.engine = VOICE_NONE;                           /* no engine: nothing */
-    play(&p, 57, 8000, 8000);
-    CHECK_EQ(peak_of(0, 8000), 0);
-}
-
-/* the reference renders: C-3, 0.6 s held, then 0.4 s of release */
-static void test_renders(void)
-{
-    static const struct { const char *name; int shape, flt, cut, res; } R[] = {
-        {"saw.wav", SHP_SAW, FLT_OFF, 0xFF, 0},
-        {"square.wav", SHP_SQR, FLT_OFF, 0xFF, 0},
-        {"triangle.wav", SHP_TRI, FLT_OFF, 0xFF, 0},
-        {"saw_lp_res.wav", SHP_SAW, FLT_LP, 0x70, 0xE0},
-        {"square_hp.wav", SHP_SQR, FLT_HP, 0x90, 0x40},
-        {"saw_bp_res_max.wav", SHP_SAW, FLT_BP, 0x80, 0xFF},
-    };
-    int i;
-    for (i = 0; i < (int)(sizeof R / sizeof *R); i++) {
-        patch_t p = patch(R[i].shape, R[i].flt, R[i].cut, R[i].res);
-        int32_t pk;
-        play(&p, 36, FS * 6 / 10, FS);
-        pk = peak_of(0, FS);
-        CHECK(pk > 1000 && pk <= 32767);
-        CHECK_EQ(lr[2 * (FS - 1)], 0);               /* released to silence */
-        CHECK_EQ(render_wav("eng_wav", R[i].name, lr, FS), 0);
-    }
-}
-
-TEST_MAIN(RUN(test_blep); RUN(test_div); RUN(test_svf_coefs); RUN(test_svf); RUN(test_svf_saturation); RUN(test_env);
-          RUN(test_vol_pan); RUN(test_renders);)
+TEST_MAIN(RUN(test_blep); RUN(test_div); RUN(test_svf_coefs); RUN(test_svf); RUN(test_svf_saturation); RUN(test_env);)

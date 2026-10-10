@@ -56,3 +56,4 @@ void app_init(void);
  * called from the audio callback: no flash, no screen, no waiting */
 void app_audio(int32_t *lr, int n);
 void app_frame(void);                   /* main loop, ~60 Hz: input, UI, drawing */
+int app_cost(void);                     /* declared MAC per frame of the last audio block (cost model) */

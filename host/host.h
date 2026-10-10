@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 /* The simulated FM-1: state and clock shared by the native scenario runner (host/scenario.c) and,
- * from P0-05, the wasm build (web/emu/fm80s_web.c). host/fm80s_host.c implements plat.h over
+ * the wasm build (web/emu/fm80s_web.c). host/fm80s_host.c implements plat.h over
  * this state and uses no stdio, so it compiles as is for both. Shape from FoMni's omni_host.c. */
 #pragma once
 #include <stdint.h>
@@ -30,6 +30,7 @@ struct host {
     uint16_t fb[LCD_W * LCD_H];         /* RGB565, byte-swapped as the panel takes it */
     uint32_t blits;                     /* lcd_fill + lcd_blit calls, to see if the screen changed */
     int32_t peak;                       /* largest |sample| out, after saturation */
+    int32_t cpu_peak;                   /* largest plat_cpu_pct() of a block since the page last read it */
     /* MIDI */
     uint32_t midi_q[HOST_MIDI_Q], midi_w, midi_r;
     uint32_t midi_out;                  /* packets sent */

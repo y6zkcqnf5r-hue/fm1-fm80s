@@ -39,7 +39,7 @@ On copie les fichiers, on renomme `trawler` en `fm80s`, et on note leur origine 
 | `sclock` de `firmware/src/tracker/seq.c` | Devient `core/clock.*` en P1-01, à 96 ticks par noire (spec §3) |
 | `firmware/src/ui/gfx.*`, `tools/gen_font.py`, `assets/fonts/` | Le thème change (spec §5) |
 | `host/` (sauf `mockup.c`), `web/emu/` | Renommés ; les sondes `expect` de l'app changent (`ui_probe`) |
-| `tests/unit/test.h`, `render.h`, `test_fixed.c`, `test_gfx.c`, la partie osc / env / svf de `test_wav.c` ; `tests/host/*`, `tests/lint/` | |
+| `tests/unit/test.h`, `render.h`, `test_fixed.c`, `test_gfx.c`, la partie osc / env / svf de `test_wav.c` (devenu `test_dsp.c`) ; `tests/host/*`, `tests/lint/` | |
 | `tools/gen_tables.py`, `size_report.py`, `lint.sh`, `Makefile`, `.github/workflows/ci.yml`, `.claude/launch.json` | |
 
 **Ce qu'on laisse :** `tracker/model`, `seq`, `instr`, `fx`, les vues et la saisie de `ui/`, et `dsp/voice.*`, une voix faite pour le tracker.
@@ -110,7 +110,8 @@ Make 3.81 de macOS compare les dates à la seconde près : après une modificati
 
 **Avant P0-02**, on applique le modèle de coût de Trawler (`../FM1/docs/05_ARCHITECTURE.md` §7) :
 - chaque moteur déclare un coût en MAC par frame et par voix active ;
-- la page affiche la jauge « CPU estimé », rouge au-dessus de 50 %.
+- `app_cost()` (dans `plat.h`) rend le coût déclaré du dernier bloc ; sur l'hôte, `plat_cpu_pct()` le rapporte à `CPU_REF_MAC` (600 MAC par frame = 100 %, `app/config.h`) ;
+- la page affiche la jauge « CPU estimé », le maximum de la dernière seconde, rouge au-dessus de 50 % (ADR-031).
 
 **En P0-02**, sur l'appareil :
 - on mesure `fm1_ticks()` autour de `app_audio`, et on l'affiche à l'écran ;

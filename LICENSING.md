@@ -18,9 +18,10 @@ La plateforme, le DSP de base, l'écran, les tests et les outils viennent de **T
 | Test de parité `tests/host/emu_test.mjs` : le module chargé dans node avec les bouchons du worklet, comparaison échantillon par échantillon avec le natif | [ChoralRootFM1](https://github.com/Quixotic7/ChoralRootFM1) `tools/emu/web/test_web_emu.mjs` (Quixotic7) ; réécrit pour Trawler | GPL-3.0-only |
 | CI `.github/workflows/ci.yml` : actions épinglées par commit, Pages par `upload-pages-artifact` et `deploy-pages` | [ChoralRootFM1](https://github.com/Quixotic7/ChoralRootFM1) `.github/workflows/pages.yml` (Quixotic7) ; réécrit pour Trawler | GPL-3.0-only |
 | Emscripten en Docker sous l'utilisateur courant, cache dans le dossier de build (`Makefile`, `DOCKER=1`) | [Hortator](https://github.com/deadactive/hortator) `tools/build_sim.sh` (DEADACTIVE) | GPL-3.0-only |
-| Générateur de police `tools/gen_font.py` (lecture du BDF, découpe), `firmware/src/ui/gfx.c`, `firmware/src/dsp/env.c`, `firmware/src/dsp/voice.c`, `firmware/src/app/cmdq.c`, `tools/size_report.py`, `tools/lint.sh` | Trawler | GPL-3.0-only |
+| Générateur de police `tools/gen_font.py` (lecture du BDF, découpe), `firmware/src/ui/gfx.c`, `firmware/src/dsp/env.c`, `firmware/src/app/cmdq.c`, `tools/size_report.py`, `tools/lint.sh` | Trawler | GPL-3.0-only |
 | Filtre `firmware/src/dsp/svf.c` | Écrit d'après les équations publiées du « Linear Trapezoidal Integrated SVF » d'Andrew Simper (Cytomic, 2013) ; aucun code repris | GPL-3.0-only |
 | Oscillateurs `firmware/src/dsp/osc.h` (polyBLEP) | Écrit d'après Välimäki et Huovilainen, « Antialiasing oscillators in subtractive synthesis » (IEEE SPM, 2007) ; aucun code repris | GPL-3.0-only |
+| Bruit `firmware/src/dsp/noise.h` | Le xorshift 32 bits de George Marsaglia (« Xorshift RNGs », *Journal of Statistical Software*, 2003), écrit d'après l'article ; aucun code repris | GPL-3.0-only |
 | Tout le reste | FM80S | GPL-3.0-only |
 
 ## Matériel tiers

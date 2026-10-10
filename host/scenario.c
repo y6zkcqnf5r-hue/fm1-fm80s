@@ -32,6 +32,8 @@
 #include <string.h>
 #include "host.h"
 #include "io.h"
+#include "core/track.h"
+#include "ui/ui.h"
 
 static const char *const BTN_N[B_COUNT] = {"OCT-", "OCT+", "FX", "SEL", "ENV", "LFO", "EDIT",
                                            "GLO", "HOME", "SAVE", "ARP", "SEQ", "PLAY", "REC"};
@@ -151,7 +153,9 @@ static int key_of(const char *s)
 }
 
 /* ------------------------------------------------------------- probes --- */
-/* expect WHAT [ARGS] VAL: the simulated device's state. */
+/* expect WHAT [ARGS] VAL: the simulated device's state, and the app's: sound (the one the knobs
+ * set, 0..15), param S I (byte I of sound S on the drums track), meter S (its level, 0..255), cpu
+ * (the estimated load, %). */
 static long p_ms(char **a) { (void)a; return (long)host.now_ms; }
 static long p_buttons(char **a) { (void)a; return (long)host.buttons; }
 static long p_keys(char **a) { (void)a; return (long)host.keys; }
@@ -165,6 +169,22 @@ static long p_wav_frames(char **a) { (void)a; return (long)wav_frames(); }
 static long p_peak(char **a) { (void)a; return host.peak; }
 static long p_midi_out(char **a) { (void)a; return (long)host.midi_out; }
 static long p_store_writes(char **a) { (void)a; return (long)host.store_writes; }
+static long p_sound(char **a) { (void)a; return ui_probe(UI_PROBE_SOUND); }
+static long p_cpu(char **a) { (void)a; return plat_cpu_pct(); }
+static long p_param(char **a)
+{
+    long s = num(a[0]), i = num(a[1]);
+    if (s < 0 || s >= DRUM_SOUNDS || i < 0 || i >= DRUM_BYTES)
+        bad("param: S 0..15, I 0..7, not", a[0]);
+    return track[0].p[s * DRUM_BYTES + i];
+}
+static long p_meter(char **a)
+{
+    long s = num(a[0]);
+    if (s < 0 || s >= ENG_METERS)
+        bad("meter: 0..15, not", a[0]);
+    return track[0].st.head.meter[s];
+}
 static long p_pixel(char **a)           /* RGB565 as the app drew it */
 {
     long x = num(a[0]), y = num(a[1]);
@@ -194,6 +214,10 @@ static const struct probe {
     {"peak", 0, p_peak},
     {"midi_out", 0, p_midi_out},
     {"store_writes", 0, p_store_writes},
+    {"sound", 0, p_sound},
+    {"param", 2, p_param},
+    {"meter", 1, p_meter},
+    {"cpu", 0, p_cpu},
 };
 
 /* 0 = met, 1 = failed */

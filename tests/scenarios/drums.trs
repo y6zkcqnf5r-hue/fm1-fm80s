@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# P0-01: the drums on the white keys, the knobs on the last sound hit, the pads and the LEDs.
+wait 50
+shot boot.png
+expect sound 0                  # the long kick is set at boot
+expect lit_keys 0
+master 3072
+
+wav beat.wav
+key w0                          # kick L
+key w6                          # closed hat
+key w2                          # snare
+expect sound 2
+key w6
+key w0
+key w0
+key w4                          # clap
+key w7                          # open hat
+expect meter 7 >0
+key w6                          # the closed hat cuts the open one
+expect meter 7 0
+expect sound 6
+wait 300
+wavstop
+
+# the knobs: KNOB1 TUNE slowly (+2 a detent), KNOB2 DECAY fast (8 a detent)
+key w8                          # tom low
+turn K1 4 80
+expect param 8 0 0x88
+turn K2 -4 10
+expect param 8 1 0x76
+turn K4 1 80
+expect param 8 3 0x6A
+expect param 0 0 0x80           # the other sounds keep their values
+wav tom.wav 600
+
+# a held key is lit; a sound still ringing is dim
+key w0 down
+wait 20
+expect lit_keys 1
+key w0 up
+wait 400
+expect lit_keys 0
+expect dim_keys 1
+shot ringing.png
+
+# all 16 at once: the pads light, the estimated CPU rises
+key w0 down
+key w1 down
+key w2 down
+key w3 down
+key w4 down
+key w5 down
+key w6 down
+key w7 down
+key w8 down
+key w9 down
+key w10 down
+key w11 down
+key w12 down
+key w13 down
+key w14 down
+key w15 down
+wait 40
+expect cpu >15
+expect cpu <40
+shot all.png
+leds
+wait 100
+key w0 up
+key w1 up
+key w2 up
+key w3 up
+key w4 up
+key w5 up
+key w6 up
+key w7 up
+key w8 up
+key w9 up
+key w10 up
+key w11 up
+key w12 up
+key w13 up
+key w14 up
+key w15 up
+wait 4000
+expect cpu 0
+expect lit_keys 0
+expect dim_keys 0
+shot silent.png

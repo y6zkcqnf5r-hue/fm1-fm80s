@@ -43,11 +43,11 @@
     // ------------------------------------------------------------------------------- drawing
     el("rect", { x: 4, y: 4, width: 992, height: 632, rx: 44, fill: C.body }, svg);
 
-    function knob(x, y, r, label, role) {
+    function knob(x, y, r, label, role, cap) {    // cap: the colour of KNOB1-4, as their gauges on the screen
       const g = el("g", { class: "knob" }, svg);
       el("circle", { cx: x, cy: y, r: r + 5, fill: C.tray }, g);
-      el("circle", { cx: x, cy: y, r, fill: C.knob, stroke: "#44474c", "stroke-width": 2 }, g);
-      const ind = el("line", { x1: x, y1: y - r + 5, x2: x, y2: y - r + 15, stroke: C.label, "stroke-width": 3, "stroke-linecap": "round" }, g);
+      el("circle", { cx: x, cy: y, r, fill: cap || C.knob, stroke: "#44474c", "stroke-width": 2 }, g);
+      const ind = el("line", { x1: x, y1: y - r + 5, x2: x, y2: y - r + 15, stroke: cap ? C.screen : C.label, "stroke-width": 3, "stroke-linecap": "round" }, g);
       text(g, x, y - r - 12, label, 16);
       const hint = text(g, x, y + r + 21, "", 12, C.engraved, "hint");
       const R = r + 14;
@@ -60,7 +60,8 @@
     knob(215, 100, 24, "SELECT", E.SELECT);
     knob(105, 205, 24, "PRESETS", E.PRESETS);
     knob(215, 205, 24, "ALGORITHM", E.ALGO);
-    [E.K1, E.K2, E.K3, E.K4].forEach((role, i) => knob(610 + i * 104, 100, 22, `KNOB${i + 1}`, role));
+    const caps = ["#2ee6ff", "#ff3fa4", "#ffd84a", "#4cf08a"];    // TH_K1..TH_K4 of firmware/src/ui/gfx.h
+    [E.K1, E.K2, E.K3, E.K4].forEach((role, i) => knob(610 + i * 104, 100, 22, `KNOB${i + 1}`, role, caps[i]));
 
     function button(x, y, w, h, bit, label, two) {
       const g = el("g", { class: "button" }, svg);

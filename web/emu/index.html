@@ -49,6 +49,12 @@ main { padding: 8px 16px 40px; }
 h1 { font-size: 1.05rem; letter-spacing: .08em; margin: 14px 0 0; }
 #status, #stats { color: var(--dim); font-size: .9rem; margin: 4px 0 0; }
 #stats { font-variant-numeric: tabular-nums; min-height: 1.3em; }
+.cpu { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; color: var(--dim); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.cpu .bar { position: relative; flex: 0 1 240px; height: 10px; border-radius: 5px; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
+.cpu .bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: #4cf08a; transition: width .1s; }
+.cpu .bar b { position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: var(--dim); }
+.cpu.hot .bar i { background: #e0483e; }
+.cpu.hot #cpuval { color: #e0483e; }
 .legend { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; color: var(--dim); font-size: .9rem; }
 .legend .opts { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-bottom: 8px; color: var(--fg); }
 .legend select { font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
@@ -67,6 +73,9 @@ kbd { font: .85em ui-monospace, Menlo, monospace; border: 1px solid var(--line);
     <h1>FM80S</h1>
     <p id="status">Éteint : le son démarre au clic sur Démarrer.</p>
     <p id="stats"></p>
+    <div class="cpu" id="cpu" title="Coût déclaré par les moteurs, rapporté au budget de référence : une estimation, mesurée sur l'appareil en P0-02. Maximum de la dernière seconde ; rouge au-dessus de 50 %.">
+      <span>CPU estimé</span><span class="bar"><i id="cpubar"></i><b></b></span><span id="cpuval">0 %</span>
+    </div>
     <section class="legend">
       <div class="opts">
         <label>Clavier de l'ordinateur <select id="layout"></select></label>
@@ -87,11 +96,12 @@ kbd { font: .85em ui-monospace, Menlo, monospace; border: 1px solid var(--line);
 "use strict";
 const KM = globalThis.FM80S_KEYMAP;
 const status = document.getElementById("status"), stats = document.getElementById("stats");
+const cpu = document.getElementById("cpu"), cpuBar = document.getElementById("cpubar"), cpuVal = document.getElementById("cpuval");
 const device = document.getElementById("device");
 
 // ---------------------------------------------------------------- the panel
 let node = null;
-const state = { rate: 0, last: null, nz: 0, frames: 0, msgs: 0, sent: [] };
+const state = { rate: 0, last: null, nz: 0, frames: 0, msgs: 0, sent: [], cpu: [] };
 window.fm80s = state;                 // for inspection from the console
 function send(m) {
   state.sent.push(m);
@@ -169,6 +179,9 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // ---------------------------------------------------------------- the legend
+const WHITE = [0, 2, 4, 6, 7, 9, 11, 12, 14, 16, 18, 19, 21, 23, 24, 26];    // the 16 white keys, F3 .. G5
+const SOUNDS = ["kick L", "kick S", "snare", "snare 2", "clap", "rim", "hat fermé", "hat ouvert",       // engine/drums.c
+                "tom grave", "tom médium", "tom aigu", "cowbell", "crash", "ride", "shaker", "zap"];
 const layoutSel = document.getElementById("layout"), hints = document.getElementById("hints");
 for (const [id, l] of Object.entries(KM.layouts)) layoutSel.add(new Option(l.name, id));
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
@@ -183,11 +196,13 @@ function legend() {
   const btn = (b) => k(KM.codeOfButton(b));
   const alt = (d) => `<kbd>${L.alt}${lab("Digit" + d)}</kbd>`;
   const B = KM.B;
+  const kit = WHITE.map((n, i) => `${k(KM.codeOfKey(n))} ${SOUNDS[i]}`).join(" · ");
   document.getElementById("legend").innerHTML = [
-    `Les touches suivent celles du FM-1 dans l'ordre : ${keysOf([0, 2, 4, 6, 7, 9, 11])} et ${keysOf([1, 3, 5, 8, 10])} : F3 à E4 ; ` +
-      `${keysOf([12, 14, 16, 18, 19, 21, 23, 24, 26])} et ${keysOf([13, 15, 17, 20, 22, 25])} : F4 à G5.`,
-    `${k("ArrowUp")} ${k("ArrowDown")} SELECT, ${k("ArrowLeft")} ${k("ArrowRight")} ALGORITHM, ${k("BracketLeft")} ${k("BracketRight")} PRESETS −/+ ; ` +
-      `${alt(1)} ${alt(2)} … ${alt(7)} ${alt(8)} KNOB1 à KNOB4 −/+.`,
+    `La batterie, un son par touche blanche (le FM-1 dans l'ordre, de F3 à G5) : ${kit}.`,
+    `Les potards règlent le dernier son frappé : ${alt(1)} ${alt(2)} TUNE, ${alt(3)} ${alt(4)} DECAY, ${alt(5)} ${alt(6)} TONE, ` +
+      `${alt(7)} ${alt(8)} LEVEL (−/+), ou à la souris et à la molette, plus vite.`,
+    `Les touches noires (${keysOf([1, 3, 5, 8, 10])} ${keysOf([13, 15, 17, 20, 22, 25])}) ne jouent rien pour l'instant. ` +
+      `${k("ArrowUp")} ${k("ArrowDown")} SELECT, ${k("ArrowLeft")} ${k("ArrowRight")} ALGORITHM, ${k("BracketLeft")} ${k("BracketRight")} PRESETS −/+.`,
     `${btn(B.SEL)} SEL, ${btn(B.EDIT)} EDIT, ${k("Space")} PLAY, ${btn(B.REC)} REC, ${btn(B.OCTDN)} ${btn(B.OCTUP)} OCT− / OCT+, <kbd>Ctrl S</kbd> SAVE ; ` +
       `<kbd>F1</kbd>…<kbd>F7</kbd> HOME, ARP, SEQ, ENV, LFO, GLO, FX${isMac ? " (avec <kbd>fn</kbd> sur Mac)" : ""}.`,
   ].map((s) => `<li>${s}</li>`).join("");
@@ -223,6 +238,13 @@ function onFrame(m) {
   if (m.fb) drawScreen(m.fb);
   panel.leds(m);
   if (m.load !== undefined) state.load = m.load;
+  // the estimated CPU: the largest of the last second of device time (a drum hit is a peak)
+  state.cpu.push([m.now, m.cpu]);
+  while (state.cpu.length && state.cpu[0][0] < m.now - 1000) state.cpu.shift();
+  const pk = state.cpu.reduce((a, [, v]) => Math.max(a, v), 0);
+  cpuBar.style.width = `${Math.min(100, pk)}%`;
+  cpuVal.textContent = `${pk} %`;
+  cpu.classList.toggle("hot", pk > 50);
   stats.textContent = `${state.rate} Hz · appareil ${(m.now / 1000).toFixed(1)} s · ${m.frames} frames · ` +
     `${state.nz} échantillons non nuls · pic ${m.peak}` + (state.load !== undefined ? ` · ${state.load} % du temps réel` : "");
 }

@@ -98,6 +98,12 @@ EXPORT void web_store_set_len(int slot, int n)
 EXPORT uint32_t web_store_writes(void) { return host.store_writes; }
 
 /* --------------------------------------------------------- diagnostics --- */
-EXPORT int web_cpu(void) { return plat_cpu_pct(); }
+/* the largest estimated CPU of a block since the last call (the drums are peaks) */
+EXPORT int web_cpu(void)
+{
+    int c = host.cpu_peak;
+    host.cpu_peak = 0;
+    return c;
+}
 EXPORT uint32_t web_now(void) { return host.now_ms; }
 EXPORT int32_t web_peak(void) { return host.peak; }

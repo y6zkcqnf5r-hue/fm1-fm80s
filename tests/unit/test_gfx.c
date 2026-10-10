@@ -125,7 +125,7 @@ static void test_theme(void)
     CHECK_EQ(RGB565(0xFF, 0, 0), 0xF800);
     CHECK_EQ(RGB565(0, 0xFF, 0), 0x07E0);
     CHECK_EQ(RGB565(0, 0, 0xFF), 0x001F);
-    CHECK(TH_BG != TH_TEXT && TH_CURSOR != TH_BG && TH_PLAYROW != TH_BG);
+    CHECK(TH_BG != TH_TEXT && TH_PAD != TH_BG && TH_SELECT != TH_PAD);
 }
 
 TEST_MAIN(RUN(test_shapes); RUN(test_faces); RUN(test_scale_and_clip); RUN(test_theme);)

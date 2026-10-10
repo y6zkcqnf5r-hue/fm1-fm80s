@@ -38,6 +38,7 @@ def pitch_inc_exact(p):
 
 
 SUB = 16             # frames per control sub-block (CLAUDE.md rule 5)
+METAL_HZ = (205.3, 304.4, 369.6, 522.7, 540.0, 800.0)
 CUT_LO, CUT_HI = 30.0, 18000.0   # filter cutoff of CUT 00 and FF, in Hz (exponential between)
 ENV_LO, ENV_HI = 0.001, 10.0     # envelope time of 00 and FF, in s (exponential between)
 
@@ -97,6 +98,11 @@ def main(path):
     L += arr("ENV_ATK_Q24", "uint32_t", atk, 8)
     L += [""]
     L += arr("ENV_COEF_Q24", "uint32_t", coef, 8)
+    # the metallic bank of the Drums engine (engine/drums.c): six square waves at the classic
+    # analogue drum machine's frequencies, as pitches in 1/16 semitone
+    metal = [int(round((A4 + 12 * math.log2(f / 440.0)) * FINE)) for f in METAL_HZ]
+    L += [""]
+    L += arr("DRUM_METAL_P16", "int16_t", metal)
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     Path(path).write_text("\n".join(L) + "\n")
 

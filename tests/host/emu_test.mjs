@@ -10,7 +10,7 @@
 // 2. The clock: web_render(128) for 10 minutes of device time ends exactly where host_run_ms says,
 //    and gives the same samples as web_run_ms.
 // 3. worklet.js itself, under stubs of the AudioWorklet globals, at 44.1 and 48 kHz: a held key
-//    sounds and lights, a press and release sent together stay apart >= 24 ms of device time, and the
+//    sounds and lights, the screen is sent only while it changes, a press and release sent together stay apart >= 24 ms of device time, and the
 //    resampler consumes exactly 44100 source frames per second of output.
 // 4. keymap.js: KeyZ is F3, the 27 keys are reachable, no key twice.
 // Shape from ChoralRoot's tools/emu/web/test_web_emu.mjs (Quixotic7), rewritten for Trawler.
@@ -195,10 +195,14 @@ async function worklet() {
     const frames = p.port.sent.filter((m) => m.type === "frame");
     ok(nz > 0 && peak > 0.2 && peak <= 1, `touche F3 tenue : ${nz} échantillons non nuls, pic ${peak.toFixed(3)}`);
     ok(lit === 1 && frames.at(-1).keys === 1, `touche F3 allumée (web_lit_keys ${lit}, dernier frame keys ${frames.at(-1).keys})`);
-    ok(frames.length >= 25 && frames.length <= 40 && frames.some((m) => m.fb) && !frames.at(-1).fb,
-       `${frames.length} messages frame en 1 s, fb seulement quand l'écran change`);
+    ok(frames.length >= 25 && frames.length <= 40 && frames.some((m) => m.fb),
+       `${frames.length} messages frame en 1 s, dont des écrans`);
     p.port.onmessage({ data: { type: "keys", mask: 0 } });
-    seconds(0.2);
+    // once the kick has died away (about 1 s), the screen stops changing: no more fb
+    const before = p.port.sent.length;
+    seconds(2.5);
+    const quiet = p.port.sent.slice(before).filter((m) => m.type === "frame").slice(-15);
+    ok(quiet.length === 15 && quiet.every((m) => !m.fb), "le son fini, plus d'écran envoyé (fb seulement quand l'écran change)");
 
     // a tap shorter than a quantum: press and release in the same breath
     p.port.onmessage({ data: { type: "keys", mask: 1 } });
