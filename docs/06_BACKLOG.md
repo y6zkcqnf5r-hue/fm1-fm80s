@@ -16,7 +16,7 @@
 
 ### F0-01 — FM80S sur le FM-1
 
-> **État (2026-10-10) :** le dépôt, le build sur le Mac, le nom, l'image de démarrage (validée), ABOUT (validée), le README, la licence et les mesures sont faits ; tests verts, golden inchangés. **Reste, à l'arrivée du FM-1 :** l'installation, l'essai et ton avis.
+> **État (2026-10-10) :** le dépôt, le build sur le Mac, le nom, l'image de démarrage (validée), ABOUT (validée), le README, la licence et les mesures sont faits ; tests verts, golden inchangés. **Reste, à l'arrivée du FM-1 :** l'installation, l'essai et ton avis. F0-02 commence sans attendre (ADR-048).
 
 **Ce qu'on fait :**
 - Le dépôt (ADR-037) : tag `plateforme-trawler` ; main repart de l'historique de SLOOP 2.5, plus nos docs et notre `CLAUDE.md` ; remote `sloop`. **Le push forcé de main t'est demandé avant.**
