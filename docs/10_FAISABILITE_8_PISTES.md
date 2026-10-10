@@ -1,6 +1,6 @@
 # 10 — Faisabilité : SLOOP à 8 pistes
 
-> 2026-10-10. Étude faite en lisant le code de SLOOP 2.5 (commit `fa9ce57` de isod89/sloop-fm1, cloné dans `vendor-ref/sloop-fm1`), sans rien compiler : les tailles sont calculées à la main d'après les structures, sauf `sizeof(project_t)` qu'un test de SLOOP vérifie. **Les chiffres sont à confirmer au premier build (F0-01) et en F1-01.**
+> 2026-10-10. Étude faite en lisant le code de SLOOP 2.5 (commit `fa9ce57` de isod89/sloop-fm1, cloné dans `vendor-ref/sloop-fm1`), sans rien compiler : les tailles sont calculées à la main d'après les structures, sauf `sizeof(project_t)` qu'un test de SLOOP vérifie. **Les chiffres sont à confirmer au premier build (F0-01) et en F1-01.** Le premier build est fait : voir §3.1.
 
 ## 1. Verdict
 
@@ -31,10 +31,12 @@ Les masques `song.rec` et `song.solo` (`core.h:280-283`) sont sur 8 bits : **8 p
 
 | Zone | Taille | Aujourd'hui |
 | --- | --- | --- |
-| RAM (`.data`, `.bss`) | 96 Kio | **Marge inconnue**, à mesurer au premier build (sloopDX, plus gros, est à ~85 Kio) |
-| Pool (gros tampons) | 336 Kio | ~334 Ko utilisés, **~10 Ko libres** ; `tools/build.py:252` refuse le build sous 8 Kio libres |
+| RAM (`.data`, `.bss`) | 96 Kio (98 304 o) | **Mesuré : 84 820 o, 13 484 o libres (13,2 Kio)** |
+| Pool (gros tampons) | 336 Kio (344 064 o) | **Mesuré : 333 948 o, 10 116 o libres** ; `tools/build.py` refuse le build sous 8 192 o libres : il reste 1 924 o utilisables sans rien libérer |
 | `.noinit` (survit aux redémarrages) | 15 696 o | Les 4 sections A–D : **pleine** |
-| Code | ~568 Kio | Serré : le moteur SLICE n'y tient déjà plus |
+| Code (slot de l'app) | 581 564 o | **Mesuré : SLOOP 2.5, 565 200 o (16 364 libres) ; FM80S 0.1, 567 472 o (14 092 libres)**. L'image de démarrage de FM80S coûte +2 272 o. Le moteur SLICE n'y tient pas |
+
+*Mesures du 2026-10-10 (F0-01), lues dans la sortie de `./build.sh`. FM80S 0.1 ne change ni la RAM ni le pool.*
 
 Le pool aujourd'hui : delay 128 Kio, bande d'écran 58 Kio, mémoire du punch-in 64 Kio, slicer 32 Kio (`sl_buf[NTRK][4096]`), arènes des moteurs 3 × ~8,6 Ko, `song_keep` et `autosave_buf` 2 × 3840 o, visualiseur ~5,5 Ko.
 
@@ -60,7 +62,7 @@ Soit ~+74 Ko dans le pool, qui n'en a que 10.
 
 **Bilan pour le pool : ~16 Ko de marge en plus qu'aujourd'hui.** Le delay, la réverbe et le punch-in restent intacts.
 
-Pour la RAM, ~+17 Ko : si la marge n'y est pas, on déplace `proj_tmp` ou les tables par partie dans le pool, qui aura de la place.
+Pour la RAM, ~+17 Ko : **la marge mesurée n'y est pas** (13,2 Kio libres, il manque ~4 Ko). En F1-01, on déplace `proj_tmp` (3,8 Ko) et une partie des tables par partie (drawbar, FM6) dans le pool, qui aura ~16 Ko de marge (Q-10).
 
 ## 4. Les projets et les sections
 
@@ -107,7 +109,7 @@ Ce qui n'est **pas** un nombre de pistes, à ne pas toucher : `proj_slot[4]`, `A
 
 ## 8. Dans l'ordre
 
-1. **F0-01** : premier build, la vraie marge de RAM et de pool.
+1. **F0-01** : premier build, la vraie marge de RAM et de pool (§3.1 : RAM 13,2 Kio libres, pool 10 116 o, code 14 092 o).
 2. **F1-01** : 8 pistes sous le capot, les bugs, le vol de voix, la mesure du CPU sur le FM-1, et le choix pour les sections.
 3. **F1-02** : l'interface à 8.
 4. **F1-03** : le format `FUN6`, la flash, l'éditeur web.

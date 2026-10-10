@@ -10,7 +10,7 @@ FM80S est un **fork de SLOOP 2.5** ([isod89/sloop-fm1](https://github.com/isod89
 
 Décidé le 2026-10-10 (`docs/09_COMPARAISON.md`, ADR-036). La plateforme reprise de Trawler (P0-01) est gardée sous le tag `plateforme-trawler`. Anthony reçoit son FM-1 la semaine du 2026-10-12.
 
-> **Transition :** tant que F0-01 n'est pas faite, le dépôt contient encore l'ancienne plateforme et SLOOP est cloné en lecture seule dans `vendor-ref/sloop-fm1`. F0-01 fait repartir main de l'historique de SLOOP (ADR-037).
+> **Depuis F0-01 :** main part de l'historique de SLOOP 2.5 (remote `sloop`, ADR-037) ; l'ancienne plateforme reste sous le tag `plateforme-trawler`.
 
 Documents à lire avant toute tâche, dans cet ordre :
 
@@ -33,17 +33,18 @@ Documents à lire avant toute tâche, dans cet ordre :
 6. **Les golden de SLOOP ne changent que sur un changement de son voulu**, écouté par Anthony : `GOLDEN_UPDATE=1`, et le diff de `tests/golden.txt` relu dans le commit. Même chose pour le budget CPU (`BUDGET_UPDATE=1`).
 7. **Wasm et natif rendent le même son** dès F0-03 (rendus de `tests/golden.txt`, `-ffp-contract=off`).
 8. **GPL-3.0-only**, en-tête SPDX dans chaque fichier ; le code repris garde son en-tête et ses crédits, et se note dans `LICENSING.md`.
-9. **Noms :** le produit s'appelle FM80S. Ni « SLOOP », ni « Felucca », ni « M-VAVE » comme nom de produit ; le crédit « d'après SLOOP et Felucca » reste (ADR-044). Ni marque, ni graphismes, ni noms de Teenage Engineering ou d'Arturia (« façon Juno » dans la doc, jamais dans l'interface).
+9. **Noms :** le produit s'appelle FM80S. Ni « SLOOP », ni « Felucca », ni « M-VAVE » comme nom de produit ; le crédit « by Floydus » / « inspired by SLOOP & Felucca » reste (ADR-044, ADR-047). Ni marque, ni graphismes, ni noms de Teenage Engineering ou d'Arturia (« façon Juno » dans la doc, jamais dans l'interface).
+10. **L'interface est en anglais** (écrans du FM-1, démarrage, ABOUT, installateur, émulateur) ; la doc et les commits restent en français (ADR-047).
 
 ## Commandes
 
 ```sh
-./build.sh                # le firmware (Docker Desktop sur Mac) : build/felucca.fwsc
+./build.sh                # le firmware (Docker Desktop sur Mac) : build/fm80s.fwsc (= felucca.fwsc, lu par les tests)
 tests/run_tests.sh        # les tests sur l'ordinateur (après ./build.sh)
 GOLDEN_UPDATE=1 sh tests/run_tests.sh   # accepter un changement de son voulu
 ```
 
-Les commandes de l'émulateur arrivent avec F0-02. Avant F0-01, l'ancien `Makefile` (`make lint test web`) ne concerne que la plateforme abandonnée.
+Les commandes de l'émulateur arrivent avec F0-02. Le site d'installation local : `python3 web/make_site.py build/fm80s.fwsc 0.1 build/site` (pas à pas dans `README.md`).
 
 ## Façon de travailler
 

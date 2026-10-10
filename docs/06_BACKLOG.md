@@ -16,10 +16,12 @@
 
 ### F0-01 — FM80S sur le FM-1
 
+> **État (2026-10-10) :** le dépôt, le build sur le Mac, le nom, l'image de démarrage (validée), ABOUT (validée), le README, la licence et les mesures sont faits ; tests verts, golden inchangés. **Reste, à l'arrivée du FM-1 :** l'installation, l'essai et ton avis.
+
 **Ce qu'on fait :**
 - Le dépôt (ADR-037) : tag `plateforme-trawler` ; main repart de l'historique de SLOOP 2.5, plus nos docs et notre `CLAUDE.md` ; remote `sloop`. **Le push forcé de main t'est demandé avant.**
 - Le build sur ton Mac : Docker Desktop, la chaîne JieLi, les 3 fichiers du SDK AC79 (on te guide pas à pas). Première mesure de la RAM, du pool et du code, notée dans `10_FAISABILITE_8_PISTES.md` (Q-10).
-- Le nom FM80S à l'écran et sur le fichier installé, le crédit « d'après SLOOP et Felucca » (spec §1, ADR-044).
+- Le nom FM80S à l'écran et sur le fichier installé, le crédit « by Floydus » / « inspired by SLOOP & Felucca », interface en anglais (spec §1, ADR-044, ADR-047).
 - L'image de démarrage synthwave : un script la génère au format de SLOOP (240×188, 16 couleurs) ; **tu la valides sur un PNG avant qu'on construise.**
 - `README.md` et `LICENSING.md` réécrits pour FM80S.
 

@@ -46,7 +46,7 @@ Ce que ce n'est pas : un OP-XY (station de séquençage, très complète mais pe
 | **Jeu** | Polyphonie selon le moteur (de 4 à 8 voix, à mesurer sur l'appareil), glide, mono / poly. |
 | **Presets** | Une banque de sons par moteur, orientée synthwave, et sauvegarde des sons et des projets (boucles comprises). |
 | **FM-1 virtuel** | La même chose dans le navigateur, au clavier de l'ordinateur et au panneau. **Avant toute fonction nouvelle** (ADR-041). |
-| **Identité** | Le nom FM80S, une image de démarrage synthwave, un thème et 8 couleurs de piste ; le crédit « d'après SLOOP et Felucca » (ADR-044). |
+| **Identité** | Le nom FM80S, une image de démarrage synthwave, un thème et 8 couleurs de piste ; le crédit « by Floydus » / « inspired by SLOOP & Felucca », interface en anglais (ADR-044, ADR-047). |
 
 **Hors MVP :** enregistrer du son (pas d'entrée audio sur le FM-1, et ~5 s de mémoire), échantillons longs, export WAV de la boucle (à voir). *Le granulaire, les échantillons courts et le MIDI out viennent de SLOOP : on les garde.*
 

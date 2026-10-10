@@ -2,13 +2,13 @@
 
 > v0.2, 2026-10-10. FM80S est un fork de SLOOP 2.5 (ADR-036) : l'arbre, le build et les tests sont ceux de SLOOP, décrits dans son `BUILDING.md` et en tête de ses fichiers. Ce document dit comment on s'y place et ce qu'on y ajoute. L'architecture v0.1 (plateforme de Trawler, `plat.h`, interface de moteur) est gardée sous le tag `plateforme-trawler` (ADR-045).
 >
-> Tant que F0-01 n'est pas faite, le dépôt contient encore l'ancienne plateforme ; le code de SLOOP est cloné en lecture seule dans `vendor-ref/sloop-fm1`.
+> Depuis F0-01, main part de l'historique de SLOOP 2.5 (remote `sloop`) ; l'ancienne plateforme est sous le tag `plateforme-trawler`.
 
 ## 1. Les cibles
 
 | Cible | Build | Rôle |
 | --- | --- | --- |
-| FM-1 | `./build.sh` → `build/felucca.fwsc` (renommé en F0-01) | Le firmware installé depuis Chrome ou Edge (installateur web de SLOOP) ou `tools/fm1_install.py` |
+| FM-1 | `./build.sh` → `build/fm80s.fwsc` (le même paquet que `felucca.fwsc`, que lisent les tests de SLOOP ; identité `FM-1_900`) | Le firmware installé depuis Chrome ou Edge (installateur web de SLOOP) ou `tools/fm1_install.py` |
 | Ordinateur | `tests/run_tests.sh` → `build/host/` | Les tests de SLOOP : rendus WAV (`tests/hostsim.c`), écrans en PPM (`tests/ui_pages_test.c`), golden, budget CPU |
 | Navigateur | F0-02 : `web/emu/` | Le FM-1 virtuel : le même firmware en wasm, dans un AudioWorklet (ADR-041) |
 
@@ -28,7 +28,7 @@ web/                     l'éditeur (editor.html), l'installateur, EDITOR_PROTOC
 docs/                    la page publiée de SLOOP (installateur, éditeur) — nos docs y sont ajoutées
 ```
 
-Nos documents (`03_PRD.md` à `10_FAISABILITE_8_PISTES.md`) vont dans `docs/` à côté de la page de SLOOP. *À vérifier en F0-01 :* si `docs/` est servi tel quel par GitHub Pages, nos `.md` y seront visibles ; c'est sans risque, mais on peut les mettre dans `docs/fm80s/`.
+Nos documents (`03_PRD.md` à `10_FAISABILITE_8_PISTES.md`) sont dans `docs/` à côté de la page de SLOOP (aucun nom en commun). Notre page Pages est publiée par un workflow, pas depuis `docs/` : nos `.md` n'y sont pas servis.
 
 ## 3. Le dépôt et l'amont (ADR-037)
 
@@ -49,14 +49,14 @@ Les prérequis de SLOOP sur Mac (`BUILDING.md`) :
 - Python 3 avec Pillow ; Node.js pour les tests web.
 
 ```sh
-./build.sh                # le firmware : build/felucca.fwsc (app + loader)
+./build.sh                # le firmware : build/fm80s.fwsc (app + loader)
 tests/run_tests.sh        # les tests sur l'ordinateur (demande le build d'abord)
 GOLDEN_UPDATE=1 sh tests/run_tests.sh   # après un changement de son voulu, puis relire le diff de golden.txt
 ```
 
 - `tools/build.py` refuse le build si le pool a moins de 8 Kio libres : c'est notre garde-fou mémoire.
 - Le budget CPU se compare à `tests/cpu_baseline.txt` (+25 %) et `tests/target_budget.txt` (+10 %).
-- F0-01 vérifie que tout cela marche sur le Mac d'Anthony, et note les premières mesures (RAM, pool, code).
+- **F0-01, sur le Mac d'Anthony :** le build marche ; SLOOP 2.5 se reconstruit à l'identique de son paquet publié (seule la date de build change). Les 3 fichiers du SDK se téléchargent seuls depuis gitee (empreintes vérifiées par `build.py`), sans cloner le SDK ; chaîne JieLi `jieli-linux-toolchains-20260730.1` (SHA-256 `a1545cdd…47bd`). Le budget CPU a été recalé sur SLOOP 2.5 tel quel (les comptes d'instructions dépendent de la machine, et `target_budget.txt` n'avait pas suivi SLOOP 2.4 et 2.5). Mesures : `10_FAISABILITE_8_PISTES.md` §3.1.
 
 ## 5. Le FM-1 virtuel (F0-02, F0-03, ADR-041)
 

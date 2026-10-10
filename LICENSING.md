@@ -1,3 +1,29 @@
+# Licence de FM80S
+
+FM80S (par Floydus) est un logiciel libre sous la GNU General Public License, version 3 uniquement (`GPL-3.0-only`, texte complet dans `LICENSE`). C'est un fork de **SLOOP 2.5** ([isod89/sloop-fm1](https://github.com/isod89/sloop-fm1), isod89), lui-même fondé sur **Felucca** ([hugelton/Felucca](https://github.com/hugelton/Felucca), Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments). Tout ce que dit la licence de SLOOP et de Felucca, reproduite telle quelle plus bas, vaut pour FM80S : en particulier, les **Felucca Assets** (`assets/icons.png`, l'image du panneau, le Hügelton Sample Pack) ne sont pas sous GPL, et la **permission additionnelle de la section 7** permet de les combiner au firmware.
+
+Si vous distribuez FM80S, ou un firmware qui en dérive, vous devez fournir à vos destinataires le source complet correspondant, sous la même licence : https://github.com/y6zkcqnf5r-hue/fm1-fm80s (l'adresse affichée dans la page ABOUT).
+
+## Ce que FM80S ajoute ou change
+
+| Quoi | Origine | Licence |
+| --- | --- | --- |
+| `tools/gen_fm80s_splash.py`, l'image de démarrage (`build/gen/fm80s_splash.h`, et son aperçu `assets/logo/fm80s-splash.png`) | FM80S, Copyright (C) 2026 Floydus ; dessinée à partir de formes simples, sans police ni image tierce ; même format que `tools/gen_logo.py` de SLOOP | GPL-3.0-only |
+| `firmware/src/fm80s_splash.c` | FM80S, d'après `firmware/src/splash.c` de SLOOP (isod89) | GPL-3.0-only |
+| Les lignes marquées `FM80S` dans les fichiers de SLOOP (`ui.c`, `ui_menu.c`, `recovery.c`, `ui_vis.c`, `felucca.c`, `main.c`, `tools/build.py`, `web/index_pkg.html`, `web/make_site.py`), et les budgets CPU recalés (`tests/cpu_baseline.txt`, `tests/target_budget.txt`) | FM80S | GPL-3.0-only, comme les fichiers qui les portent |
+| Les documents `docs/03_PRD.md` à `docs/10_FAISABILITE_8_PISTES.md`, `CLAUDE.md`, ce `README.md` | FM80S | GPL-3.0-only |
+| Tout le reste de l'arbre | SLOOP et Felucca, inchangés : voir plus bas | Comme indiqué plus bas |
+
+L'ancienne plateforme de FM80S (reprise de Trawler, avec du code d'après Charles Vestal, Quixotic7 et DEADACTIVE) n'est plus dans cet arbre : elle est gardée sous le tag `plateforme-trawler`, avec son propre `LICENSING.md`. L'émulateur web (F0-02) en reprendra une partie, et ses origines seront notées ici.
+
+## Noms et marques
+
+« SLOOP » est le nom du projet d'isod89 ; « Felucca » et « Hügelton Instruments » sont des noms de Hügelton Instruments. FM80S ne les utilise que pour les créditer (« inspired by SLOOP & Felucca »), jamais comme nom de produit. « M-VAVE » et « FM-1 » sont des marques de leurs propriétaires : FM80S est un firmware indépendant, ni affilié à M-VAVE, ni approuvé, ni soutenu par la société. FM80S n'active jamais la radio Bluetooth ou Wi-Fi de l'appareil.
+
+---
+
+*La licence de SLOOP et de Felucca, telle que SLOOP 2.5 la publie :*
+
 # Felucca licensing
 
 Felucca is free software. Its **code** is licensed under the GNU General Public License,
