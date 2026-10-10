@@ -7,18 +7,24 @@
 # SLOOP 2.4: FM6 (fm6_op_run, fm6_op_fb: the per-sample operator loops; fm6_render: the voice's output loop)
 # are in FUNCS without a budget yet: the engine was ported on a host without the pi32v2 toolchain; the
 # next ./build.sh + BUDGET_UPDATE=1 adds their lines (until then they print "no budget", not a failure).
-analog_render 638
+# FM80S (F0-01): rewritten from SLOOP 2.5 unchanged (its package rebuilt byte for byte, but for the build
+# date): the FM6 lines added as announced above; fm1_alnk0_irq 174 -> 268, drums_mix 6153 -> 6478, the
+# budget had not followed SLOOP 2.4 / 2.5.
+analog_render 641
 digital_render 333
 phase_render 79
 lofi_render 128
-sample_render 126
+sample_render 130
 formant_render 314
 trio_render 341
 trio_pass 175
 drawbar_render 267
 drawbar_block 102
-grain_render 1734
-grain_block 138
+grain_render 1748
+grain_block 132
 slicer_track 825
-drums_mix 6153
-fm1_alnk0_irq 174
+drums_mix 6478
+fm6_op_run 72
+fm6_op_fb 26
+fm6_render 363
+fm1_alnk0_irq 268
