@@ -105,3 +105,5 @@ tests/run_tests.sh
 - Le reste des crédits (polices, échantillons, code repris) : [`LICENSING.md`](LICENSING.md).
 
 GPL-3.0-only, texte complet dans [`LICENSE`](LICENSE). « SLOOP » est le nom du projet d'isod89 ; « Felucca » et « Hügelton Instruments » sont des noms de Hügelton Instruments ; FM80S ne les utilise que pour les créditer. « M-VAVE » et « FM-1 » sont des marques de leurs propriétaires : FM80S est un firmware indépendant, ni affilié à M-VAVE, ni approuvé, ni soutenu par la société. Les instruments cités pour décrire un caractère sonore (Juno, DX7, OP-1…) sont des marques de leurs propriétaires ; FM80S n'en reprend ni les noms, ni les graphismes.
+
+You can also try FM-1 fm80s in the browser, no flashing needed, in the free community [FM-1 Emulator](https://fm1-emulator.atst.tools/).
